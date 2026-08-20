@@ -23,9 +23,12 @@ export default function App() {
         {/* <Route path="/admin/jobs" element={<AdminJobs />} /> */}
         {/* <Route path="/admin/jobs/new" element={<AdminJobSubmissionForm />} /> */}
 
-        {/* Future modules — not built yet, routes reserved per design doc §4 */}
-        {/* <Route path="/case-studies" element={<CaseStudies />} /> */}
-        {/* <Route path="/case-studies/:slug" element={<CaseStudyDetail />} /> */}
+        {/* Future modules — not built yet, routes reserved per design doc §4.
+            Canonical names: Jobs (live), Resources, Success stories, Referrals.
+            Don't add a route/label pair here without also adding it to
+            navConfig.ts and the Home.tsx Services strip — see design doc §2. */}
+        {/* <Route path="/success-stories" element={<SuccessStories />} /> */}
+        {/* <Route path="/success-stories/:slug" element={<SuccessStoryDetail />} /> */}
         {/* <Route path="/resources" element={<Resources />} /> */}
         {/* <Route path="/referrals" element={<Referrals />} /> */}
       </Routes>

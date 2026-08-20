@@ -4,9 +4,11 @@ import { postedLabel, recencyTier } from '../../lib/format'
 import Badge from '../ui/Badge'
 
 const recencyTone = { fresh: 'green', aging: 'amber', stale: 'gray' } as const
+const KNOWN_FUNCTIONS = ['data', 'product', 'bizops', 'engineering', 'finance', 'design']
 
 export default function JobCard({ job, query }: { job: Job; query?: string }) {
   const navigate = useNavigate()
+  const showFnBadge = KNOWN_FUNCTIONS.includes(job.fn)
 
   return (
     <div
@@ -21,7 +23,7 @@ export default function JobCard({ job, query }: { job: Job; query?: string }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-base font-semibold">{job.title}</span>
-            <Badge tone="neutral">{job.fn}</Badge>
+            {showFnBadge && <Badge tone="neutral">{job.fn}</Badge>}
           </div>
           <div className="text-sm text-text-secondary mt-1">{job.company}</div>
           <div className="flex gap-3.5 mt-2.5 flex-wrap font-mono text-[11.5px] text-text-tertiary">

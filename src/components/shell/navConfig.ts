@@ -1,5 +1,8 @@
-// Adding Resources/Referrals/Case studies later (see docs/DESIGN_DOC.md §4)
-// is a one-line addition here — Nav.tsx renders from this array, no JSX edits.
+// Adding future modules later (see docs/DESIGN_DOC.md §4) is a one-line
+// addition here — Nav.tsx renders from this array, no JSX edits.
+// Canonical module names — keep in sync with the Services strip on Home
+// and docs/DESIGN_DOC.md. Do not introduce a new label in one place without
+// adding it here too (see design doc §2 audit note on "Advice").
 export interface NavLink {
   label: string
   to: string
@@ -10,5 +13,6 @@ export const navLinks: NavLink[] = [
   { label: 'Home', to: '/', enabled: true },
   { label: 'Jobs', to: '/jobs', enabled: true },
   { label: 'Resources', to: '/resources', enabled: false },
-  { label: 'Case studies', to: '/case-studies', enabled: false },
+  { label: 'Success stories', to: '/success-stories', enabled: false },
+  { label: 'Referrals', to: '/referrals', enabled: false },
 ]

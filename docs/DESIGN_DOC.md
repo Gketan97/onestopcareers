@@ -1,7 +1,7 @@
 # OneStop Jobs — Design Doc v1
 
 **Status:** Draft for review
-**Scope:** Brand positioning & copy, Jobs listing + detail, WhatsApp alert subscription, admin job submission, light-theme redesign, future-proofed architecture for case studies / resources / referrals.
+**Scope:** Brand positioning & copy, Jobs listing + detail, WhatsApp alert subscription, admin job submission, light-theme redesign, future-proofed architecture for success stories / resources / referrals.
 
 ---
 
@@ -15,9 +15,9 @@ This rebuild has three goals:
 2. **Add two new capabilities on top of the existing data pipeline:**
    - A **WhatsApp subscription service** so users get job alerts pushed to them, not just pulled via browsing.
    - An **admin form** for manually adding job links, replacing the ad-hoc Google Sheet as the source for non-crawled listings.
-3. **Build for what's next without building it now.** Case studies, resources, and referrals are explicitly out of scope for this phase, but the routing, component library, and data layer must not require rework to add them later.
+3. **Build for what's next without building it now.** Resources, success stories, and referrals are explicitly out of scope for this phase, but the routing, component library, and data layer must not require rework to add them later.
 
-**Non-goals for this phase:** dark theme, case studies/resources/referrals UI, employer-facing tooling, payments/monetization, native mobile app.
+**Non-goals for this phase:** dark theme, resources/success-stories/referrals UI, employer-facing tooling, payments/monetization, native mobile app.
 
 ---
 
@@ -44,20 +44,38 @@ Blunt, ownable, used as the hero eyebrow / section label. Distinct from the hook
 3. **The fix is mechanical, not motivational.** We don't tell people to try harder or be more disciplined — every CTA should describe a system that removes the need for willpower (e.g. "it's in your WhatsApp the moment it's live," not "stay consistent!").
 4. **One cushioning line max, then commit to the blunt version.** A line like "not because you're lazy" is allowed once per block to keep tone from reading as an accusation — but don't let it soften the actual point that follows.
 5. **No stock filler.** Cut "unlock," "empower," "seamless," "your journey," or any phrase a job board's marketing team would also use. If a sentence could appear on a competitor's site unchanged, rewrite it.
+6. **Keep the two positioning layers separate.** The platform makes a *trust* claim ("this is checked, unlike YouTube/creators/AI noise"). Each service makes a *behavior* claim specific to its own pain point (Jobs: "you don't apply daily"). Never let one service's execution pitch double as the platform's trust pitch, or vice versa — they answer different objections and belong in different sections.
 
 ### Reference copy (home page — canon for implementation)
 
+**Platform layer** (brand-level — trust claim, applies to Jobs and every future module):
+
 | Placement | Copy |
 |---|---|
-| Nav hook line | Knowing what to do was never the problem. Doing it daily is. |
-| Hero eyebrow | Cut the crap. |
-| Hero H1 | You know how to job search. You just don't do it *daily.* |
-| Hero sub | "I'll apply this weekend" becomes next Wednesday, becomes next month — and 500 people already applied before you opened the tab. We don't teach you more. We make sure today happens. |
-| Why-this-exists | You don't need another "how to job search" video. You've watched five. We're not here to teach you what to do — you already know. We're here to make sure you actually do it, every day, before it's too late. |
+| Nav wordmark | onestop**careers** (full name, accent on "careers") — no subtext caption; the nav stays a clean wordmark + links + CTA |
+| Platform hero eyebrow | Cut the crap. |
+| Platform hero H1 | Your career, without the *noise.* |
+| Platform hero sub | A YouTube video from someone who got lucky once. Old advice recycled by five different creators. An AI answer that sounds right and isn't. OneStopCareers is built the opposite way — jobs, resources, and real outcomes, all checked before they reach you. |
+| Trust bar (under platform hero) | Every listing checked by hand — not scraped and dumped · No AI-generated links that go nowhere · No recycled advice from five other creators |
+| Services strip | Jobs (live) / Resources (soon) / Success stories (soon) / Referrals (soon) — the canonical four modules. Do not introduce a new label here without adding it to navConfig.ts and App.tsx's reserved routes too — see the naming audit note below. |
+
+**Jobs service layer** (scoped to this one service — behavior/execution claim, not a trust claim):
+
+| Placement | Copy |
+|---|---|
+| Jobs section eyebrow | Jobs — live now |
+| Jobs section H2 | You know how to job search. You just don't do it *daily.* |
+| Jobs section sub | "I'll apply this weekend" becomes next Wednesday, becomes next month — and 500 people already applied before you opened the tab. We don't teach you more. We make sure today happens. |
 | WhatsApp CTA H3 | You didn't apply today. You won't tomorrow either. |
 | WhatsApp CTA body | Not because you're lazy — "later" just always wins when nothing's forcing your hand. The moment a matching role goes live, it's in your WhatsApp. No dashboard to remember, no tab you meant to bookmark. You either act right then, or you don't — but you'll never lose to "I didn't see it." |
 
 Jobs page H1 intentionally stays functional/plain ("Jobs" + live count), not pain-point copy — the pain point is the *reason* someone lands there via the hero/alerts, not something the listing page itself needs to re-argue.
+
+### Naming audit note
+
+The four modules are **Jobs, Resources, Success stories, Referrals** — this is canonical, cross-check `navConfig.ts`, the Home.tsx Services strip, and App.tsx's reserved routes against this list before adding or renaming anything.
+
+Two corrections made after an initial naming pass: "Case studies" was renamed to **"Success stories"** — in a job-search context, "case study" risks being read as case-interview practice material (a specific, different thing for product/consulting applicants), while "success stories" is unambiguous and matches how LinkedIn/Duolingo/most consumer platforms label this content type. Separately, an ad hoc "Advice" module that appeared only in the Services strip (not in the nav, not in this doc's original scope) was removed — it duplicated Resources with no distinguishable purpose. Any future new module name should be added here first, not invented directly in a component.
 
 ### Open copy work (not yet written, needed before build)
 
@@ -176,8 +194,8 @@ Larger cards with company logos as the dominant visual element, grid layout, mor
 /admin/jobs               → List/edit manually submitted jobs
 
 ── Reserved, not built now ──
-/case-studies             → (future)
-/case-studies/:slug       → (future)
+/success-stories          → (future)
+/success-stories/:slug    → (future)
 /resources                → (future)
 /referrals                → (future)
 ```
@@ -186,7 +204,7 @@ Larger cards with company logos as the dominant visual element, grid layout, mor
 - `Home` should be a thin composition of section components (`<JobsPreview>`, later `<CaseStudiesPreview>`, etc.), not a monolith — adding a new section later means adding a component, not editing existing ones.
 - Nav (`src/components/shell/Nav.tsx`) should render its link list from a config array, not hardcoded JSX, so adding `Resources`/`Referrals` later is a one-line change.
 - The router file (`src/app/routes.tsx`) should be the *only* place routes are declared — no route logic scattered in components — so reserved routes above can be uncommented/added without hunting through the codebase.
-- Data layer (`src/lib/`) should be organized **by domain** (`lib/jobs/`, `lib/alerts/`, `lib/admin/`) from day one, even though only `jobs/` and `alerts/` have content now — this means `lib/case-studies/` later is an addition, not a restructuring.
+- Data layer (`src/lib/`) should be organized **by domain** (`lib/jobs/`, `lib/alerts/`, `lib/admin/`) from day one, even though only `jobs/` and `alerts/` have content now — this means `lib/success-stories/` later is an addition, not a restructuring.
 
 ---
 

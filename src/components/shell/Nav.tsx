@@ -7,12 +7,9 @@ export default function Nav() {
 
   return (
     <nav className="flex items-center justify-between px-6 md:px-12 py-5 border-b border-border-subtle bg-bg-surface">
-      <Link to="/" className="flex flex-col gap-0.5">
-        <span className="font-display text-2xl tracking-tight">
-          onestop<span className="text-accent">.</span>
-        </span>
-        <span className="hidden md:block font-mono text-[10.5px] text-text-tertiary">
-          Knowing what to do was never the problem. Doing it daily is.
+      <Link to="/" className="flex items-center">
+        <span className="font-display text-[26px] tracking-tight leading-none">
+          onestop<span className="text-accent">careers</span>
         </span>
       </Link>
 
