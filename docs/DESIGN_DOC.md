@@ -45,6 +45,23 @@ Blunt, ownable, used as the hero eyebrow / section label. Distinct from the hook
 4. **One cushioning line max, then commit to the blunt version.** A line like "not because you're lazy" is allowed once per block to keep tone from reading as an accusation — but don't let it soften the actual point that follows.
 5. **No stock filler.** Cut "unlock," "empower," "seamless," "your journey," or any phrase a job board's marketing team would also use. If a sentence could appear on a competitor's site unchanged, rewrite it.
 6. **Keep the two positioning layers separate.** The platform makes a *trust* claim ("this is checked, unlike YouTube/creators/AI noise"). Each service makes a *behavior* claim specific to its own pain point (Jobs: "you don't apply daily"). Never let one service's execution pitch double as the platform's trust pitch, or vice versa — they answer different objections and belong in different sections.
+7. **Every trust/process claim must be verifiable against the actual pipeline before it ships.** A brand built on "cut the crap" cannot make claims about its own process that aren't true — that's the exact hypocrisy it's positioned against. Before writing or approving copy like "checked by hand," "expert-vetted," or any specific number, check it against what `crawler.js` (or the relevant system) actually does. See the audit below for a worked example and the corrected claims.
+
+### Claims audit (2026-08-20)
+
+A pass through the live hero copy against `crawler.js` found two false claims sitting directly under the "Cut the crap" motto — worth recording so this check becomes routine, not a one-time fix.
+
+| Claim | Verdict | Reality |
+|---|---|---|
+| "Every listing checked by hand" | ❌ False — removed | Fully automated: `fetchGreenhouse`/`fetchLever`/`fetchAshby`/etc. hit ATS APIs directly, `classifyIndia()` and `detectFn()` are regex-based, `dedup()` is a hash-key match. No human review step exists in the pipeline. |
+| "Expert-vetted first" | ❌ False — removed | Same reason — no expert reviews a listing before publish. |
+| "No AI-generated links that go nowhere" | ✅ True — kept | URLs come straight from each source API's response fields (`hostedUrl`, `jobUrl`, `externalPath`) — real, not fabricated. |
+| "Roles from 200+ companies" | ⚠️ **No longer true — copy changed 2026-08-20** | Was verified true at 212 (see below) when this row was first written. Adzuna was disabled the same day (ad-redirect links, see below), dropping active company count to 186 direct-ATS companies. Rather than update the number and risk the same drift happening again, the Jobs ServiceCard copy was changed to "Roles that are actually live" — true regardless of company count, and the count itself is deliberately not being restated until the roadmap (re-enabling Adzuna, or adding direct sources for MNCs) is settled. |
+| "Checked daily" | ⚠️ True but reworded | The crawl cron does run daily, but the phrase read as manual review next to the (now-removed) hand-check claim. Reworded to "Refreshed daily, straight from source." |
+| "5x the job updates" (CareerCircle) | ⚠️ Forward commitment, not a current fact | No group exists yet, so there's no baseline to measure against. This is the platform owner's own stated operational target (not invented in copy), kept as-is, but it's a promise to actually honor once the group launches — see §10 open questions. |
+| "500 people already applied" (Jobs section) | ⚠️ Rhetorical, not a site statistic | No applicant-count data exists anywhere in the pipeline. Reads as illustrative hyperbole about the job market generally, not a claim about this site's mechanics — lower risk than the hand-check claim, left unchanged. |
+
+**What replaced the false claims** — the pipeline's real, honest edge is engineering, not manual labor: direct-from-source URLs (not a job-board aggregator), automatic dedup (`company|title|city` hash match, keeps the freshest), and automatic 30-day expiry (`deduped.filter(j => !j.posted_at || j.posted_at >= cutoffStr)`). These are all true and still differentiate from "scraped and dumped" competitors without claiming human involvement that doesn't exist.
 
 ### Reference copy (home page — canon for implementation)
 
@@ -56,8 +73,8 @@ Blunt, ownable, used as the hero eyebrow / section label. Distinct from the hook
 | Platform hero eyebrow | Cut the crap. |
 | Platform hero pain-point stack | Unsure where to find the right jobs? / Unsure where to find resources that actually help? / Unsure which YouTube path to trust? / Unsure what the roadmap to your dream role even looks like? |
 | Platform hero H1 (resolve line) | If that's you, OneStopCareers *is for you.* |
-| Platform hero sub | Every job, resource, and recommendation here is expert-vetted first — so you're never guessing which YouTube video, AI answer, or recycled advice thread to trust. |
-| Trust bar (under platform hero) | Every listing checked by hand — not scraped and dumped · No AI-generated links that go nowhere · No recycled advice from five other creators |
+| Platform hero sub | Every job comes straight from the company's own career page — not another job board, not a scraped listicle, not an AI guess. Dead postings expire automatically. Duplicates get merged, not shown twice. |
+| Trust bar (under platform hero) | Pulled directly from company career pages — not a job-board aggregator · No AI-generated links that go nowhere |
 | Platform hero pattern | Pain-point stack (4 lines) → resolve H1 → sub → trust bar. See §2 note below on when to use this pattern vs a narrative paragraph. |
 | Services strip | Jobs (live) / CareerCircle (live) / Resources (soon) / Success stories (soon) — the canonical four modules. Do not introduce a new label here without adding it to navConfig.ts and App.tsx's reserved routes too — see the naming audit note below. |
 
@@ -283,7 +300,7 @@ interface Job {
   color: string           // hex, used for function-tag accent
   posted_at: string       // YYYY-MM-DD
   src: 'greenhouse' | 'lever' | 'ashby' | 'workable' | 'smartrecruiters'
-     | 'eightfold' | 'workday' | 'adzuna' | 'manual'
+     | 'eightfold' | 'workday' | 'adzuna' | 'jsearch' | 'manual'
   tier: 1 | 2 | 3 | 4      // company tier, used in India-classification heuristics
   dept: string
   country: string
@@ -296,6 +313,48 @@ interface Job {
 - Frontend's `fetchJobs.ts` should validate the shape at runtime (e.g. with `zod`) and fail loudly (logged, not silently swallowed) if the CDN payload doesn't match the expected schema — this is cheap insurance against the two repos drifting.
 
 **Where admin-submitted jobs live:** see §7 — they are *not* written directly into the crawler's `jobs.json`, to keep the crawler's output single-writer.
+
+### Pipeline architecture reference (jobscout-date repo)
+
+This frontend repo (`onestop-jobs`) and the crawler (`jobscout-date`, github.com/Gketan97/jobscout-date) are separate repos, cloned to separate local folders — the crawler is **not** connected to the same VS Code window as this project unless you open it as a second folder. Documenting its architecture here anyway, since this design doc is the place both repos' contributors would look to understand the whole system, not just the half that happens to live in this repo.
+
+**Sources, as of the v8 audit (2026-08-20):**
+
+| Source | Type | Companies/queries | Notes |
+|---|---|---|---|
+| Greenhouse | Direct ATS API | 115 | `boards-api.greenhouse.io` |
+| Lever | Direct ATS API | 26 | `api.lever.co` |
+| Ashby | Direct ATS API | 22 | `api.ashbyhq.com` |
+| Workable | Direct ATS API | 5 | `apply.workable.com` |
+| SmartRecruiters | Direct ATS API | 4 | India-filtered via `country=IN` param |
+| Eightfold | Direct ATS API | 3 | Cursor-paginated, 200-page cap |
+| Workday | Direct ATS API (POST) | 11 | Facet-key guessing across tenants — see code comment in `fetchWorkday` |
+| Adzuna (by company) | Aggregator API | 26 | **Disabled 2026-08-20** — see below |
+| Adzuna (by city/category) | Aggregator API | 20 | **Disabled 2026-08-20** — see below |
+| Adzuna (by keyword) — added in v8 | Aggregator API | 15 | **Disabled 2026-08-20** — see below |
+| JSearch — added in v8, optional | Google for Jobs wrapper | 3 | **Disabled 2026-08-20** — see below |
+| Google Sheet (manual) | CSV read | — | Being replaced by the admin form, §7 |
+
+**Active company count, updated 2026-08-20:** 186 direct-ATS companies (`greenhouse` 115 + `lever` 26 + `ashby` 22 + `workable` 5 + `smartrecruiters` 4 + `eightfold` 3 + `workday` 11). Was 212 before Adzuna was disabled the same day — the 26 companies in `adzuna_mnc` (Amazon, Google, Microsoft, JPMorgan, Goldman Sachs, Morgan Stanley, Deutsche Bank, Barclays, HSBC, Citi, McKinsey, BCG, Flipkart, Ola, MakeMyTrip, Byju's, and others) have **no direct-ATS path** — none run a public Greenhouse/Lever/Ashby/Workable/SmartRecruiters/Eightfold/Workday board, and Amazon specifically was confirmed to have no public developer API at all (verified — the only paths in are undocumented scrapers of amazon.jobs's private endpoints, which isn't something this pipeline does). They're not in the pipeline right now, by decision, not oversight.
+
+**Why Adzuna and JSearch are commented out (2026-08-20 decision):** Adzuna's `redirect_url` routes through Adzuna's own ad-serving redirect page before reaching the actual listing — this conflicts directly with the "pulled directly from company career pages, not a job-board aggregator" trust claim in the platform hero (§2 claims audit). JSearch isn't free at meaningful query volume. Both are fully implemented and commented out in `crawler.js`, not deleted — see the block comment at the top of the Adzuna/JSearch section in `main()` for exactly what's disabled and why. `companies.json` still carries the `adzuna_keyword` and `jsearch_analytics` query configs and the analytics-company backlog note — inert data, ready to reactivate if the tradeoff changes later.
+
+**v8 audit findings and fixes:**
+- **Version drift** — the file header and most `User-Agent` strings said `JobScout/7.0`, but `fetchGoogleSheet`'s said `8.0`, and `jobs.json`/`meta.json` were written with `v: 7`. Cosmetic, but confusing if anyone ever needs to reason about which crawler version produced a given dataset. Standardized to v8 everywhere as part of this pass, since real capability was added anyway.
+- **Dead code** — `byMethod` in the stats block was computed identically to `sources` and never read or written anywhere. Removed.
+- **Silent permanent failures** — `recordState()` tracked `consecutive_errors` per company but nothing ever read the counter. A company with a dead slug or a moved ATS board would fail forever without surfacing anywhere. Added a log warning at 5 consecutive failures (`CONSECUTIVE_ERROR_WARN_THRESHOLD`) — still no auto-pause (that's a bigger design decision, see open questions), but at least it's visible in run logs now.
+- **No analytics-specific sourcing** — Adzuna has no "data" or "analytics" category tag, only broad buckets (`it-jobs`, `engineering-jobs`, etc.), so analytics roles were only reachable incidentally through whatever companies happened to be hiring for. `adzuna_keyword` was built to fix this but is currently inert along with the rest of Adzuna — see above.
+
+**Getting more analytics-focused roles — what was actually checked, not assumed:**
+
+1. **Adzuna keyword search (`adzuna_keyword`, shipped in v8).** Adzuna's `what=` parameter supports free-text keyword search alongside the `where=` city parameter — confirmed against Adzuna's own API docs. Added 15 queries: `{data analyst, business analyst, data scientist} × {Bengaluru, Mumbai, Delhi, Hyderabad, Pune}`. Zero new signup — reuses the `ADZUNA_APP_ID`/`ADZUNA_APP_KEY` already configured. This is the immediately-live fix.
+
+2. **"Can we hit Google Jobs API" — checked, the honest answer:** there is **no official public API to query Google for Jobs search results.** Google Cloud Talent Solution is a different, unrelated product — it's for publishing *your own* job postings into a Google-powered search experience on your own site, not for querying Google's aggregated listings from other sources. Confirmed against Google Cloud's own documentation.
+   The verified path to Google for Jobs data is **JSearch** (OpenWeb Ninja / also listed on RapidAPI) — a third-party service that reads Google for Jobs results (which itself aggregates LinkedIn, Indeed, Glassdoor, ZipRecruiter, and others) and returns structured JSON. `crawler.js` already had an unused `JSEARCH_KEY` env var stubbed in before this audit — this was clearly the original plan, just never finished. **Implemented in v8** as `fetchJSearch()`, gated entirely behind `JSEARCH_KEY` being set (skips cleanly otherwise, same pattern as Adzuna).
+   **Cost reality, confirmed against the vendor's current pricing:** free tier is 200 requests/month, 1000/hour. At 3 queries/run, running daily would hit ~90/month — fine. But queries scale fast if you add more cities/titles, and there's no slack for retries. This is why `fetchJSearch` runs on a **weekly**, not daily, cadence (`JSEARCH_TTL_MS`) — comfortably inside the free tier at the current 3-query config. Scaling to daily or more queries needs the $25/mo Pro tier (10k requests/month) — verify current pricing before assuming that number still holds, vendor pricing pages change.
+   **What JSearch does NOT give you:** direct ATS coverage (Workday, Greenhouse, Lever, Ashby aren't in it) — it's a genuine complement to the existing pipeline, not a replacement or a source of duplicate listings.
+
+3. **Dedicated analytics companies — not yet added, deliberately.** A backlog of candidates (Tiger Analytics, Fractal Analytics, LatentView Analytics, Mu Sigma, SG Analytics, EXL Analytics, Genpact's analytics practice, WNS Analytics, Straive) is recorded in `companies.json`'s `_analytics_backlog_notes` field. None have a verified ATS slug — searching turned up only third-party aggregator listings (Indeed, Wellfound, Built In), not confirmation of which ATS each company's actual careers page uses. Adding a guessed slug would just produce silent 404s and wasted API calls (per the audit finding above, this would now at least surface as a warning after 5 failed runs — but it's still better not to guess). Whoever picks this up next needs to visit each company's real careers page and identify the ATS + board slug before flipping any of these from `onboarding` to `active`.
 
 ---
 
@@ -367,7 +426,11 @@ Unlike the cut automated alerts service, CareerCircle is a human-run WhatsApp gr
 
 1. **Company logos** — do we want them on `JobCard`? Direction C leans on this; Direction A (recommended) doesn't need them but could still benefit. If yes, need a source (Clearbit Logo API, manual upload via admin form, or skip).
 2. **Admin form hosting/storage** — same repo as the frontend (serverless functions + a managed DB like Supabase/Postgres), or a small separate service? Affects §7 architecture.
-3. **CareerCircle invite link** — needs a real WhatsApp group created and an invite link before the "Request to join" CTAs can go live (currently marked "coming soon" on both the nav and the CareerCircle page). Who owns creating/moderating the group?
+3. **CareerCircle invite link** — needs a real WhatsApp group created and an invite link before the "Request to join" CTAs can go live (currently marked "coming soon" on both the nav and the CareerCircle page). Who owns creating/moderating the group? Relatedly: the site claims "5x the job updates" vs. the free channel — this is a real operational commitment once the group launches, not just copy, so whoever moderates needs to actually track and hit that ratio, or the claim becomes exactly the kind of unverifiable promise this brand is positioned against (see §2 claims audit).
 4. **DPDP Act compliance review** — who owns this / when does it happen relative to launch? Flagged in §9 but needs an owner and timeline, not just an engineering task.
 5. **Home page scope** — is `/` purely a `/jobs` redirect for now, or a minimal landing page with its own copy/hero? Affects Phase 1 build order.
 6. **Manual job submission volume** — expected frequency (a few a week vs. dozens a day) affects whether the admin form needs bulk-import (CSV upload) in addition to single-entry, or if single-entry is sufficient for now.
+7. **~~JSearch signup~~ — resolved 2026-08-20:** decided not free enough to pursue now. `fetchJSearch()` stays commented out in `crawler.js`. Revisit if the economics change.
+8. **Analytics company backlog** — 9 candidate companies (Tiger Analytics, Fractal Analytics, etc., full list in `companies.json`'s `_analytics_backlog_notes`) need someone to visit their actual careers pages and confirm ATS + slug before they can be activated. Who picks this up, and is it worth prioritizing given CareerCircle's analytics-role focus? Unaffected by the Adzuna decision below — these would be direct-ATS additions, not Adzuna-dependent.
+9. **MNC sourcing (Amazon/Google/Microsoft/JPMorgan/etc.)** — deliberately left out as of 2026-08-20 (see §6 pipeline architecture). Only path back in is re-enabling some or all of Adzuna, or finding a direct source per company (unlikely — most of these run proprietary ATSs with no public API, confirmed for Amazon specifically). Revisit if these companies become a priority.
+10. **"Roles that are actually live" copy** — deliberately vague on company count as of 2026-08-20 rather than restate a number that might drift again. Once the MNC-sourcing question above is settled, decide whether to restate a real count or keep it count-free permanently.

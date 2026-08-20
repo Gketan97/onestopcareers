@@ -42,13 +42,14 @@ export default function Home() {
           If that&apos;s you, OneStopCareers <em className="text-accent not-italic italic">is for you.</em>
         </h1>
         <p className="mt-7 text-lg text-text-secondary max-w-xl leading-relaxed">
-          Every job, resource, and recommendation here is expert-vetted first
-          — so you&apos;re never guessing which YouTube video, AI answer, or
-          recycled advice thread to trust.
+          Every job comes straight from the company&apos;s own career page —
+          not another job board, not a scraped listicle, not an AI guess.
+          Dead postings expire automatically. Duplicates get merged, not
+          shown twice.
         </p>
 
         <div className="flex flex-wrap gap-x-8 gap-y-3 mt-12 pt-8 border-t border-border-subtle max-w-2xl">
-          <TrustItem>Every listing checked by hand — not scraped and dumped</TrustItem>
+          <TrustItem>Pulled directly from company career pages — not a job-board aggregator</TrustItem>
           <TrustItem>No AI-generated links that go nowhere</TrustItem>
         </div>
       </section>
@@ -63,8 +64,8 @@ export default function Home() {
           <ServiceCard
             label="Jobs"
             status="live"
-            title="Roles from 200+ companies"
-            description="Checked daily. Apply before the first 500 do."
+            title="Roles that are actually live"
+            description="Refreshed daily, straight from source. Apply before the first 500 do."
             href="/jobs"
           />
           <ServiceCard
@@ -78,7 +79,7 @@ export default function Home() {
             label="Resources"
             status="soon"
             title="Guides worth your time"
-            description="Vetted the same way as everything else here."
+            description="Same quality bar as everything else here."
           />
           <ServiceCard
             label="Success stories"

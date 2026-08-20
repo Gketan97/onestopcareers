@@ -25,6 +25,7 @@ export interface Job {
     | 'eightfold'
     | 'workday'
     | 'adzuna'
+    | 'jsearch' // added v8 — currently unused, crawler.js has JSearch commented out (2026-08-20)
     | 'manual'
   tier: 1 | 2 | 3 | 4
   dept: string
