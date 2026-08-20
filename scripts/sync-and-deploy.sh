@@ -71,8 +71,22 @@ ok "Source root: $SRC_ROOT"
 SYNC_PATHS=(src docs public index.html package.json tailwind.config.cjs postcss.config.cjs vite.config.ts tsconfig.json README.md)
 
 for p in "${SYNC_PATHS[@]}"; do
-  if [ -e "$SRC_ROOT/$p" ]; then
-    rsync -a --delete "$SRC_ROOT/$p" "$PROJECT_DIR/$p" 2>/dev/null || cp -r "$SRC_ROOT/$p" "$PROJECT_DIR/$p"
+  SRC_PATH="$SRC_ROOT/$p"
+  [ -e "$SRC_PATH" ] || continue
+  if [ -d "$SRC_PATH" ]; then
+    mkdir -p "$PROJECT_DIR/$p"
+    if command -v rsync >/dev/null 2>&1; then
+      # Trailing slashes on BOTH sides = sync contents into the target dir.
+      # Without them, rsync nests the source dir inside the target
+      # (e.g. src/src/...) when the target already exists — that was the bug.
+      rsync -a --delete "$SRC_PATH/" "$PROJECT_DIR/$p/"
+    else
+      rm -rf "${PROJECT_DIR:?}/$p"
+      mkdir -p "$PROJECT_DIR/$p"
+      cp -r "$SRC_PATH/." "$PROJECT_DIR/$p/"
+    fi
+  else
+    cp -f "$SRC_PATH" "$PROJECT_DIR/$p"
   fi
 done
 ok "Synced: ${SYNC_PATHS[*]}"
