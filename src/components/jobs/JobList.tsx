@@ -9,7 +9,8 @@ import EmptyState from './EmptyState'
 import Skeleton from '../ui/Skeleton'
 import Button from '../ui/Button'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 24
+type ViewMode = 'grid' | 'list'
 
 export default function JobList() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -19,6 +20,8 @@ export default function JobList() {
   const [page, setPage] = useState(1)
   const [activeFn, setActiveFn] = useState<string | null>(null)
   const [remoteOnly, setRemoteOnly] = useState(false)
+  // Grid is the default — denser, more roles visible without scrolling.
+  const [view, setView] = useState<ViewMode>('grid')
 
   const q = searchParams.get('q') || ''
 
@@ -83,6 +86,7 @@ export default function JobList() {
             setRemoteOnly((v) => !v)
           }}
         />
+        <ViewToggle view={view} onChange={setView} />
       </div>
 
       {!loading && !error && (
@@ -96,9 +100,9 @@ export default function JobList() {
       )}
 
       {loading && (
-        <div className="flex flex-col gap-3">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-[92px]" />
+        <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3' : 'flex flex-col gap-3'}>
+          {[...Array(9)].map((_, i) => (
+            <Skeleton key={i} className={view === 'grid' ? 'h-[132px]' : 'h-[92px]'} />
           ))}
         </div>
       )}
@@ -106,9 +110,15 @@ export default function JobList() {
       {!loading && !error && filtered.length === 0 && <EmptyState query={q} />}
 
       {!loading && !error && filtered.length > 0 && (
-        <div className="flex flex-col gap-3">
+        <div
+          className={
+            view === 'grid'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'
+              : 'flex flex-col gap-3'
+          }
+        >
           {paginated.map((job) => (
-            <JobCard key={job.id} job={job} query={q} />
+            <JobCard key={job.id} job={job} query={q} compact={view === 'grid'} />
           ))}
         </div>
       )}
@@ -120,6 +130,31 @@ export default function JobList() {
           </Button>
         </div>
       )}
+    </div>
+  )
+}
+
+function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
+  return (
+    <div className="flex items-center gap-1 bg-bg-surface border border-border-default rounded-md p-1 ml-auto">
+      <button
+        onClick={() => onChange('grid')}
+        aria-label="Grid view"
+        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+          view === 'grid' ? 'bg-accent-soft text-accent' : 'text-text-tertiary hover:text-text-secondary'
+        }`}
+      >
+        Grid
+      </button>
+      <button
+        onClick={() => onChange('list')}
+        aria-label="List view"
+        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+          view === 'list' ? 'bg-accent-soft text-accent' : 'text-text-tertiary hover:text-text-secondary'
+        }`}
+      >
+        List
+      </button>
     </div>
   )
 }

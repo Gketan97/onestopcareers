@@ -2,8 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from '../pages/Home'
 import Jobs from '../pages/Jobs'
 import JobDetail from '../pages/JobDetail'
-// import Alerts from '../pages/Alerts'         // Phase 3
-// import Unsubscribe from '../pages/Unsubscribe' // Phase 3
+import CareerCircle from '../pages/CareerCircle'
 // import AdminJobs from '../pages/AdminJobs'   // Phase 4
 
 export default function App() {
@@ -13,24 +12,24 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
+        <Route path="/career-circle" element={<CareerCircle />} />
 
         {/* Reserved — see docs/DESIGN_DOC.md §4 for the full route map.
-            Uncomment as each phase ships; do not add ad-hoc routes elsewhere. */}
-        {/* <Route path="/alerts" element={<Alerts />} /> */}
-        {/* <Route path="/alerts/verify" element={<AlertsVerify />} /> */}
-        {/* <Route path="/alerts/unsubscribe" element={<Unsubscribe />} /> */}
+            Uncomment as each phase ships; do not add ad-hoc routes elsewhere.
+            The WhatsApp job-alerts service (Alerts/Unsubscribe, OTP flow) was
+            cut — CareerCircle covers job updates via WhatsApp already. See
+            design doc §8. */}
         {/* <Route path="/admin" element={<AdminLogin />} /> */}
         {/* <Route path="/admin/jobs" element={<AdminJobs />} /> */}
         {/* <Route path="/admin/jobs/new" element={<AdminJobSubmissionForm />} /> */}
 
         {/* Future modules — not built yet, routes reserved per design doc §4.
-            Canonical names: Jobs (live), Resources, Success stories, Referrals.
+            Canonical names: Jobs (live), CareerCircle (live), Resources, Success stories.
             Don't add a route/label pair here without also adding it to
             navConfig.ts and the Home.tsx Services strip — see design doc §2. */}
         {/* <Route path="/success-stories" element={<SuccessStories />} /> */}
         {/* <Route path="/success-stories/:slug" element={<SuccessStoryDetail />} /> */}
         {/* <Route path="/resources" element={<Resources />} /> */}
-        {/* <Route path="/referrals" element={<Referrals />} /> */}
       </Routes>
     </BrowserRouter>
   )

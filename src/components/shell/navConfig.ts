@@ -12,7 +12,7 @@ export interface NavLink {
 export const navLinks: NavLink[] = [
   { label: 'Home', to: '/', enabled: true },
   { label: 'Jobs', to: '/jobs', enabled: true },
+  { label: 'CareerCircle', to: '/career-circle', enabled: true },
   { label: 'Resources', to: '/resources', enabled: false },
   { label: 'Success stories', to: '/success-stories', enabled: false },
-  { label: 'Referrals', to: '/referrals', enabled: false },
 ]

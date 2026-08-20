@@ -38,13 +38,14 @@ export default function Nav() {
         )}
       </div>
 
-      {/* Alerts flow isn't built yet (Milestone 3) — placeholder CTA for now */}
-      <button
-        className="bg-text-primary text-bg-base text-[13px] font-medium px-5 py-2.5 rounded-full"
-        title="Coming soon"
+      {/* WhatsApp job-alerts service was cut — CareerCircle covers job
+          updates (plus more) via WhatsApp already. See design doc §8. */}
+      <Link
+        to="/career-circle"
+        className="bg-text-primary text-bg-base text-[13px] font-medium px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity"
       >
-        Get job alerts
-      </button>
+        Join CareerCircle
+      </Link>
     </nav>
   )
 }

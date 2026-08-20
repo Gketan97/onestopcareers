@@ -1,7 +1,7 @@
 # OneStop Jobs — Design Doc v1
 
 **Status:** Draft for review
-**Scope:** Brand positioning & copy, Jobs listing + detail, WhatsApp alert subscription, admin job submission, light-theme redesign, future-proofed architecture for success stories / resources / referrals.
+**Scope:** Brand positioning & copy, Jobs listing + detail, CareerCircle, admin job submission, light-theme redesign, future-proofed architecture for success stories / resources / CareerCircle.
 
 ---
 
@@ -13,11 +13,11 @@ This rebuild has three goals:
 
 1. **Decouple and simplify.** Previously the Jobs experience was embedded inside a broader, unrelated career-coaching site. This rebuild extracts it into its own repo with its own identity, built and shipped one component at a time rather than as one large surface.
 2. **Add two new capabilities on top of the existing data pipeline:**
-   - A **WhatsApp subscription service** so users get job alerts pushed to them, not just pulled via browsing.
+   - **CareerCircle**, a WhatsApp community that delivers job updates plus peer support and referrals — see §2, §5.
    - An **admin form** for manually adding job links, replacing the ad-hoc Google Sheet as the source for non-crawled listings.
-3. **Build for what's next without building it now.** Resources, success stories, and referrals are explicitly out of scope for this phase, but the routing, component library, and data layer must not require rework to add them later.
+3. **Build for what's next without building it now.** Resources and success stories are explicitly out of scope for this phase, but the routing, component library, and data layer must not require rework to add them later.
 
-**Non-goals for this phase:** dark theme, resources/success-stories/referrals UI, employer-facing tooling, payments/monetization, native mobile app.
+**Non-goals for this phase:** dark theme, resources/success-stories UI, employer-facing tooling, payments/monetization, native mobile app.
 
 ---
 
@@ -29,7 +29,7 @@ Positioning and copy are treated as design material here, not filler text to swa
 
 > **"Knowing what to do was never the problem. Doing it daily is."**
 
-This is deliberately not job-search-specific. The same failure mode — knowing the right action, not doing it consistently — applies to interview prep, networking, or whatever Resources/Referrals become later. Placing it at the brand level (nav, footer) means it doesn't need rewriting when new modules ship. Short-form alternate for tight spaces (mobile nav, footer): *"Advice is free. Follow-through isn't."*
+This is deliberately not job-search-specific. The same failure mode — knowing the right action, not doing it consistently — applies to interview prep, networking, or whatever Resources/CareerCircle become later. Placing it at the brand level (nav, footer) means it doesn't need rewriting when new modules ship. Short-form alternate for tight spaces (mobile nav, footer): *"Advice is free. Follow-through isn't."*
 
 ### Motto
 
@@ -54,10 +54,12 @@ Blunt, ownable, used as the hero eyebrow / section label. Distinct from the hook
 |---|---|
 | Nav wordmark | onestop**careers** (full name, accent on "careers") — no subtext caption; the nav stays a clean wordmark + links + CTA |
 | Platform hero eyebrow | Cut the crap. |
-| Platform hero H1 | Your career, without the *noise.* |
-| Platform hero sub | A YouTube video from someone who got lucky once. Old advice recycled by five different creators. An AI answer that sounds right and isn't. OneStopCareers is built the opposite way — jobs, resources, and real outcomes, all checked before they reach you. |
+| Platform hero pain-point stack | Unsure where to find the right jobs? / Unsure where to find resources that actually help? / Unsure which YouTube path to trust? / Unsure what the roadmap to your dream role even looks like? |
+| Platform hero H1 (resolve line) | If that's you, OneStopCareers *is for you.* |
+| Platform hero sub | Every job, resource, and recommendation here is expert-vetted first — so you're never guessing which YouTube video, AI answer, or recycled advice thread to trust. |
 | Trust bar (under platform hero) | Every listing checked by hand — not scraped and dumped · No AI-generated links that go nowhere · No recycled advice from five other creators |
-| Services strip | Jobs (live) / Resources (soon) / Success stories (soon) / Referrals (soon) — the canonical four modules. Do not introduce a new label here without adding it to navConfig.ts and App.tsx's reserved routes too — see the naming audit note below. |
+| Platform hero pattern | Pain-point stack (4 lines) → resolve H1 → sub → trust bar. See §2 note below on when to use this pattern vs a narrative paragraph. |
+| Services strip | Jobs (live) / CareerCircle (live) / Resources (soon) / Success stories (soon) — the canonical four modules. Do not introduce a new label here without adding it to navConfig.ts and App.tsx's reserved routes too — see the naming audit note below. |
 
 **Jobs service layer** (scoped to this one service — behavior/execution claim, not a trust claim):
 
@@ -69,17 +71,32 @@ Blunt, ownable, used as the hero eyebrow / section label. Distinct from the hook
 | WhatsApp CTA H3 | You didn't apply today. You won't tomorrow either. |
 | WhatsApp CTA body | Not because you're lazy — "later" just always wins when nothing's forcing your hand. The moment a matching role goes live, it's in your WhatsApp. No dashboard to remember, no tab you meant to bookmark. You either act right then, or you don't — but you'll never lose to "I didn't see it." |
 
-Jobs page H1 intentionally stays functional/plain ("Jobs" + live count), not pain-point copy — the pain point is the *reason* someone lands there via the hero/alerts, not something the listing page itself needs to re-argue.
+**CareerCircle layer** (its own service, own pain point — loneliness/uncertainty in the search, not trust or execution):
+
+| Placement | Copy |
+|---|---|
+| CareerCircle pain-point stack | Ten tabs open, applying at random, hoping something sticks. / No idea if what you're doing is even right. / Nobody around who's in the same fight. / Just you, alone, refreshing an inbox that doesn't reply. |
+| CareerCircle H1 (resolve line) | You don't have to do this *alone.* |
+| Who can join | 2–5 years of experience, targeting analytics-focused roles |
+| Group rules | Capped at 50 people, give feedback not just ask for it, talk work in your domain, no recruiters/spam/promotion |
+
+**When to use the pain-point-stack pattern vs. a narrative paragraph:** use the stack when the audience is genuinely heterogeneous and each line needs to let a different visitor self-identify (the platform hero, CareerCircle — different people recognize themselves in different lines). Use a single narrative paragraph when the pain point is one specific, shared thing everyone in that section already has in common (e.g. the Jobs section sub — every visitor there has the exact same "I said I'd apply this weekend" problem, so a stack would be redundant, not clarifying).
+
+Jobs page H1 intentionally stays functional/plain ("Jobs" + live count), not pain-point copy — the pain point is the *reason* someone lands there via the hero/CareerCircle, not something the listing page itself needs to re-argue.
 
 ### Naming audit note
 
-The four modules are **Jobs, Resources, Success stories, Referrals** — this is canonical, cross-check `navConfig.ts`, the Home.tsx Services strip, and App.tsx's reserved routes against this list before adding or renaming anything.
+The four modules are **Jobs, CareerCircle, Resources, Success stories** — this is canonical, cross-check `navConfig.ts`, the Home.tsx Services strip, and App.tsx's reserved routes against this list before adding or renaming anything.
 
-Two corrections made after an initial naming pass: "Case studies" was renamed to **"Success stories"** — in a job-search context, "case study" risks being read as case-interview practice material (a specific, different thing for product/consulting applicants), while "success stories" is unambiguous and matches how LinkedIn/Duolingo/most consumer platforms label this content type. Separately, an ad hoc "Advice" module that appeared only in the Services strip (not in the nav, not in this doc's original scope) was removed — it duplicated Resources with no distinguishable purpose. Any future new module name should be added here first, not invented directly in a component.
+Two corrections made after an initial naming pass: "Case studies" was renamed to **"Success stories"** — in a job-search context, "case study" risks being read as case-interview practice material (a specific, different thing for product/consulting applicants), while "success stories" is unambiguous and matches how LinkedIn/Duolingo/most consumer platforms label this content type. Separately, an ad hoc "Advice" module that appeared only in the Services strip (not in the nav, not in this doc's original scope) was removed — it duplicated Resources with no distinguishable purpose.
+
+A third change: **"Referrals" was replaced by "CareerCircle,"** not just renamed. Referrals as a standalone module was thin — a static page with no actual mechanism to produce a referral. CareerCircle (a small, closed WhatsApp community, capped at 50, initially scoped to 2–5 YOE analytics roles) subsumes referrals as one thing that happens *inside* a trusted peer group, alongside the loneliness/discipline problem a static Referrals page never addressed. Shipped as live, not "coming soon," but its CTA stays visually marked "coming soon" until a real WhatsApp group invite link exists — never wire a CTA to a link that doesn't work yet.
+
+Any future new module name should be added here first, not invented directly in a component.
 
 ### Open copy work (not yet written, needed before build)
 
-- Alerts signup flow microcopy (`/alerts`, `/alerts/verify`, `/alerts/unsubscribe`) — consent checkbox language in particular needs care per §9 compliance requirements.
+- CareerCircle join-request flow microcopy — the phone-visible-to-group disclosure (§9) needs care.
 - Admin form labels/validation messages (§7).
 - Empty states (`jobs/EmptyState.tsx`) — per the docx/frontend voice rule, an empty state should read as an invitation to act, not an apology.
 - Error states — should name what happened plainly, not hedge.
@@ -185,26 +202,24 @@ Larger cards with company logos as the dominant visual element, grid layout, mor
                              career-coaching homepage)
 /jobs                     → Jobs listing
 /jobs/:id                 → Job detail
-/alerts                   → WhatsApp subscription signup + manage preferences
-/alerts/verify            → OTP/opt-in confirmation step
-/alerts/unsubscribe       → One-click unsubscribe (token-based link, no login)
 
 /admin                    → Admin login
 /admin/jobs/new           → Manual job submission form
 /admin/jobs               → List/edit manually submitted jobs
 
+/career-circle             → CareerCircle — live
+
 ── Reserved, not built now ──
 /success-stories          → (future)
 /success-stories/:slug    → (future)
 /resources                → (future)
-/referrals                → (future)
 ```
 
 **Seams for future growth:**
-- `Home` should be a thin composition of section components (`<JobsPreview>`, later `<CaseStudiesPreview>`, etc.), not a monolith — adding a new section later means adding a component, not editing existing ones.
-- Nav (`src/components/shell/Nav.tsx`) should render its link list from a config array, not hardcoded JSX, so adding `Resources`/`Referrals` later is a one-line change.
+- `Home` should be a thin composition of section components (`<JobsPreview>`, later `<SuccessStoriesPreview>`, etc.), not a monolith — adding a new section later means adding a component, not editing existing ones.
+- Nav (`src/components/shell/Nav.tsx`) should render its link list from a config array, not hardcoded JSX, so adding `Resources`/`Success stories` later is a one-line change.
 - The router file (`src/app/routes.tsx`) should be the *only* place routes are declared — no route logic scattered in components — so reserved routes above can be uncommented/added without hunting through the codebase.
-- Data layer (`src/lib/`) should be organized **by domain** (`lib/jobs/`, `lib/alerts/`, `lib/admin/`) from day one, even though only `jobs/` and `alerts/` have content now — this means `lib/success-stories/` later is an addition, not a restructuring.
+- Data layer (`src/lib/`) should be organized **by domain** (`lib/jobs/`, `lib/admin/`) from day one — this means `lib/success-stories/` later is an addition, not a restructuring.
 
 ---
 
@@ -226,26 +241,20 @@ Organized by domain folder, in the order you should build them — each is indep
 ### Phase 2 — Jobs (primary redesign target)
 | Component | Purpose |
 |---|---|
-| `jobs/JobCard.tsx` | Single listing — title, company, meta, recency dot |
+| `jobs/JobCard.tsx` | Single listing — title, company, meta, recency dot. Supports a `compact` prop for the grid view (see Jobs page below) — same component, not a duplicate. |
 | `jobs/JobSearch.tsx` | Search input, debounced, syncs to URL `?q=` |
 | `jobs/JobFilters.tsx` | Function/city/mode/seniority filter chips |
-| `jobs/JobSort.tsx` | Sort control (recency, relevance) |
-| `jobs/JobList.tsx` | Composes search+filters+sort, renders `JobCard[]`, pagination |
+| `jobs/JobList.tsx` | Composes search+filters, view toggle (grid/list — grid is default per user decision), renders `JobCard[]`, pagination |
 | `jobs/EmptyState.tsx` | No-results state |
 | `pages/Jobs.tsx` | Thin page: `<JobList />` + page chrome |
 | `pages/JobDetail.tsx` | Single job full view + apply CTA |
 
-### Phase 3 — Alerts (WhatsApp)
+### Phase 2b — CareerCircle (live)
 | Component | Purpose |
 |---|---|
-| `alerts/PhoneInput.tsx` | Phone number entry with country code, validation |
-| `alerts/PreferenceForm.tsx` | Function/city/keyword preference picker |
-| `alerts/OtpVerify.tsx` | OTP entry step |
-| `alerts/ConsentNotice.tsx` | Explicit consent copy + checkbox (required, see §9) |
-| `pages/Alerts.tsx` | Composes the above into the signup flow |
-| `pages/Unsubscribe.tsx` | Token-link landing page, one action: confirm unsubscribe |
+| `pages/CareerCircle.tsx` | Pain-point-led page for the WhatsApp community. CTA is visually complete but marked "coming soon" until a real group invite link exists — do not wire a fake/dead link. |
 
-### Phase 4 — Admin
+### Phase 3 — Admin
 | Component | Purpose |
 |---|---|
 | `admin/LoginForm.tsx` | Auth gate |
@@ -310,38 +319,15 @@ Per your decision, this replaces the Google Sheet with a proper internal tool ra
 
 ---
 
-## 8. WhatsApp subscription service
+## 8. WhatsApp job updates — cut, superseded by CareerCircle
 
-### Flow
-1. User visits `/alerts`, enters phone number + preferences (function, city, optional keyword).
-2. Explicit consent checkbox is required before submission (see §9) — no pre-checked boxes.
-3. OTP sent via WhatsApp (or SMS fallback) to verify the number is real and belongs to the user; user enters OTP on `/alerts/verify`.
-4. On success, subscription is created (status: `active`) and a WhatsApp-template welcome message is sent, including a clear unsubscribe link.
-5. A separate scheduled worker (new, small service — can live in this repo or a tiny standalone one) runs after each crawler update: reads the latest `jobs.json` (+ merged manual jobs), diffs against what's new since the last run, matches new listings against each active subscriber's preferences, and sends batched WhatsApp messages (not one message per job — batch into a digest to avoid spamming and to stay within template-messaging norms).
-6. Every message includes a one-tap unsubscribe link (`/alerts/unsubscribe?token=...`) — token-based, no login required, expires after use.
+**Status: removed.** This section originally specced a standalone, automated WhatsApp alert subscription — phone number entry, OTP verification, a scheduled worker matching new listings against per-subscriber preferences, Twilio-sent daily digests, token-based unsubscribe. None of it was built past UI placeholders (`Get alerts on WhatsApp`, `Set up alerts →` — see Home.tsx's git history for the removed CTA block).
 
-### Cadence
-Recommend a **daily digest** by default (not real-time per-job pushes) — gentler on users, cheaper on message volume/cost, and avoids WhatsApp's per-message-template approval overhead for high-frequency sends. Make cadence a per-subscriber preference (`daily` / `weekly`) from the start even if only `daily` ships first — cheap to add now, expensive to retrofit.
+**Why it was cut:** CareerCircle (§2, §5 Phase 2b) already delivers the same core promise — job updates via WhatsApp — as one part of a broader, higher-value thing: a small peer community that also solves loneliness and referrals, problems a pure alert-subscription service never addressed. Building two separate WhatsApp-based mechanisms (an automated opt-in list *and* a community group) would have meant maintaining duplicate infrastructure for overlapping value. One was cut in favor of the other.
 
-### Storage
-Subscriber data lives in its own table/store, **fully separate** from the public jobs dataset:
-```
-subscribers: { id, phone (encrypted), preferences (fn[], city[], keyword?),
-                cadence, status ('pending_otp'|'active'|'unsubscribed'),
-                consent_ts, otp_hash, otp_expires_at, unsub_token, created_at }
-```
-No subscriber data is ever merged into or exposed via the public `jobs.json`/CDN surface. Read access to the subscriber table is admin/service-only.
+**What actually changed in code:** the `Get alerts on WhatsApp` button on the Jobs section and the entire bottom "WhatsApp alerts" CTA block were removed from Home.tsx. The nav CTA (`shell/Nav.tsx`) now points to `/career-circle` instead of a dead placeholder. `Phase 3 — Alerts` in the component inventory (§5) and the `/alerts`, `/alerts/verify`, `/alerts/unsubscribe` reserved routes (§4, App.tsx) are removed — they don't need to exist even as reserved/future, since the intent is now served by CareerCircle rather than deferred.
 
-### Sending mechanism: Twilio vs. Meta direct
-
-| | Twilio (WhatsApp API wrapper) | Meta WhatsApp Business API direct |
-|---|---|---|
-| Setup complexity | Lower — Twilio handles much of the Business verification friction | Higher — direct Meta Business verification, more paperwork |
-| Cost at low/medium volume | Slightly higher per-message (Twilio markup) | Lower per-message, but only matters at real volume |
-| Template approval | Managed through Twilio console, generally faster iteration | Direct through Meta, can be slower first time |
-| Dev experience | Good SDKs, better docs for a small team | More raw, more control, more to maintain yourself |
-
-**Recommendation:** **Twilio**, for this phase. At your current scale, the setup speed and DX outweigh the per-message cost difference, and migrating to Meta-direct later (if volume justifies it) doesn't require changing the subscriber data model — only the sending adapter, if that adapter is written as an isolated module (`lib/alerts/sender.ts`) rather than inlined into the worker logic.
+**If a fully-automated, opt-in-list-style alert product is ever wanted again later** (distinct from CareerCircle's human-run group — e.g. if CareerCircle's 50-person cap becomes a bottleneck and a broader, unlimited-scale automated channel is needed), the original spec (OTP flow, Twilio vs. Meta direct comparison, digest cadence, subscriber storage schema) is preserved in this doc's git history and can be resurrected rather than redesigned from scratch.
 
 ---
 
@@ -352,34 +338,28 @@ No subscriber data is ever merged into or exposed via the public `jobs.json`/CDN
 - Every submission/edit logged with `submitted_by` + timestamp (audit trail — see §7).
 - Rate-limit login attempts (e.g. 5/15min per IP) to prevent brute force.
 
-**Phone number collection & WhatsApp:**
-- Explicit, unchecked-by-default consent checkbox with clear copy on what the user is opting into and how often they'll be messaged — required before OTP is even sent.
-- Phone numbers **encrypted at rest**; access restricted to the sending worker and admin tooling, never exposed via any public API or client-side code.
-- OTP verification before a number is marked `active` — prevents subscribing someone else's number.
-- Unsubscribe must be one tap, no login, and honored immediately (not "up to 7 days" — set `status: unsubscribed` synchronously on click).
-- **Flagging, not resolving:** WhatsApp Business Platform policy (template approval, opt-in requirements, messaging window rules) and India's DPDP Act (consent, data minimization, breach notification, grievance officer requirements) both have compliance obligations beyond what this doc can fully specify — recommend a dedicated compliance review before launch, not just engineering sign-off.
+**CareerCircle & phone numbers:**
+Unlike the cut automated alerts service, CareerCircle is a human-run WhatsApp group joined via invite link — there's no OTP flow, no subscriber database, no automated sender to secure. The privacy consideration is different in kind, not degree: joining a WhatsApp group makes a member's phone number visible to other members (this is inherent to how WhatsApp groups work, not a bug to fix). Make this visible-to-group-members fact explicit on the CareerCircle page before someone requests to join, so it's informed consent rather than a surprise. The 50-person cap (§2) is also a light privacy control — a smaller group means a smaller blast radius if the invite link leaks.
+- **Flagging, not resolving:** India's DPDP Act (consent, data minimization) still applies to how join requests are collected and processed, even without OTP/automated infra — recommend a compliance check before the join flow goes live with a real invite link, not just engineering sign-off.
 
 **Rate limiting / abuse prevention:**
-- Public-facing `/alerts` signup: rate-limit by IP and by phone number (prevent OTP-spam abuse of a target's number).
-- Admin login: rate-limited as above.
-- No public endpoint should allow enumerating subscriber phone numbers or admin-submitted job internal notes.
+- Admin login: rate-limited (e.g. 5/15min per IP).
+- No public endpoint should allow enumerating admin-submitted job internal notes.
 
 **Secrets management:**
-- Adzuna keys, Twilio credentials, admin auth secrets, database credentials — all via environment variables / a secret store (e.g. Netlify/Vercel env vars, or a proper secrets manager if infra grows). Never hardcoded, never committed — confirm `.gitignore` covers any local `.env` files (the previous repo's `.gitignore` should be audited for this too).
+- Adzuna keys, admin auth secrets, database credentials — all via environment variables / a secret store (e.g. Netlify/Vercel env vars, or a proper secrets manager if infra grows). Never hardcoded, never committed — confirm `.gitignore` covers any local `.env` files (the previous repo's `.gitignore` should be audited for this too).
 
 **CORS / API surface:**
 - Public, read-only, no auth: `jobs.json` via CDN (unchanged).
-- Public, write, no auth but rate-limited + OTP-gated: `/alerts` subscription endpoints.
-- Auth-required: all `/admin/*` endpoints, subscriber data reads, unsubscribe-token issuance (token itself is public/one-time-use by design, but issuing new tokens is not).
+- Auth-required: all `/admin/*` endpoints.
 
 **Threat model (abbreviated):**
 
 | Actor | Risk | Mitigation |
 |---|---|---|
 | Scraper of your own `/jobs` pages | Re-scraping your aggregated data at scale | Low priority (data is already public via source ATSs) — but rate-limit if it becomes a cost/load issue |
-| Spam signups on `/alerts` | Fake numbers, OTP abuse, message-cost inflation | OTP verification, IP + phone rate limiting |
 | Compromised admin credentials | Fake/malicious job listings published | Audit log, short session expiry, consider 2FA if the admin group grows |
-| Subscriber data leak | Phone numbers/preferences exposed | Encryption at rest, no public API surface, access-controlled storage |
+| Leaked CareerCircle invite link | Group fills with people outside the intended 2–5 YOE analytics scope, or a member's number gets scraped by a non-member who joined via a leaked link | Don't publish the invite link publicly — require a request-to-join step (even an informal one) so a human vets entry, rather than an open link anyone can forward |
 
 ---
 
@@ -387,7 +367,7 @@ No subscriber data is ever merged into or exposed via the public `jobs.json`/CDN
 
 1. **Company logos** — do we want them on `JobCard`? Direction C leans on this; Direction A (recommended) doesn't need them but could still benefit. If yes, need a source (Clearbit Logo API, manual upload via admin form, or skip).
 2. **Admin form hosting/storage** — same repo as the frontend (serverless functions + a managed DB like Supabase/Postgres), or a small separate service? Affects §7 architecture.
-3. **WhatsApp digest timing** — fixed time of day (e.g. 9am IST) or per-subscriber configurable? Start fixed, make configurable later?
+3. **CareerCircle invite link** — needs a real WhatsApp group created and an invite link before the "Request to join" CTAs can go live (currently marked "coming soon" on both the nav and the CareerCircle page). Who owns creating/moderating the group?
 4. **DPDP Act compliance review** — who owns this / when does it happen relative to launch? Flagged in §9 but needs an owner and timeline, not just an engineering task.
 5. **Home page scope** — is `/` purely a `/jobs` redirect for now, or a minimal landing page with its own copy/hero? Affects Phase 1 build order.
 6. **Manual job submission volume** — expected frequency (a few a week vs. dozens a day) affects whether the admin form needs bulk-import (CSV upload) in addition to single-entry, or if single-entry is sufficient for now.
