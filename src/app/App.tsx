@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from '../pages/Home'
 import Jobs from '../pages/Jobs'
 import JobDetail from '../pages/JobDetail'
+import Companies from '../pages/Companies'
+import CompanyProfile from '../pages/CompanyProfile'
 import CareerCircle from '../pages/CareerCircle'
 // import AdminJobs from '../pages/AdminJobs'   // Phase 4
 
@@ -12,6 +14,8 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/jobs" element={<Jobs />} />
         <Route path="/jobs/:slug" element={<JobDetail />} />
+        <Route path="/companies" element={<Companies />} />
+        <Route path="/companies/:slug" element={<CompanyProfile />} />
         <Route path="/career-circle" element={<CareerCircle />} />
 
         {/* Reserved — see docs/DESIGN_DOC.md §4 for the full route map.

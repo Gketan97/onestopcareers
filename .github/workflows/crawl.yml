@@ -23,6 +23,12 @@ jobs:
   crawl:
     name: Crawl jobs
     runs-on: ubuntu-latest
+    # The default GITHUB_TOKEN is read-only unless a workflow explicitly
+    # requests write access — without this, the crawler can commit locally
+    # inside the runner but can't push it back (exactly what happened on
+    # the first real run: "Write access to repository not granted", 403).
+    permissions:
+      contents: write
     timeout-minutes: 30
     defaults:
       run:

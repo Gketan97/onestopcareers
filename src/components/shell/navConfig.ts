@@ -15,8 +15,15 @@ export interface NavLink {
   enabled: boolean // false = shown but visually inert, route not built yet
 }
 
+// Updated 2026-08-23 again — added "Companies", live, per the Jobs/
+// Companies architecture brief. Adapted rather than adopted wholesale:
+// the brief proposed a lean "Jobs | Companies" nav on the assumption this
+// was the whole product; this repo already has Career Circle as a real,
+// separate differentiator, so Companies is added alongside everything
+// else rather than replacing it.
 export const navLinks: NavLink[] = [
   { label: 'Jobs', to: '/jobs', enabled: true },
+  { label: 'Companies', to: '/companies', enabled: true },
   { label: 'Career Circle', to: '/career-circle', enabled: true },
   { label: 'Resources', to: '/resources', enabled: false },
   { label: 'Projects', to: '/projects', enabled: false },

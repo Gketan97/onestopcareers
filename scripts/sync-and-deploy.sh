@@ -60,10 +60,36 @@ unzip -q "$LATEST_ZIP" -d "$TMP_DIR"
 
 # The zip's top-level folder name varies between exports (e.g. "build/",
 # "onestop-jobs/") — find whichever subfolder actually contains package.json
-# rather than hardcoding a name.
-SRC_ROOT=$(find "$TMP_DIR" -name package.json -exec dirname {} \; \
-  | while read -r d; do echo "$(echo "$d" | tr -cd '/' | wc -c) $d"; done \
-  | sort -n | head -n1 | cut -d' ' -f2-)
+# rather than hardcoding a name. Picks the SHALLOWEST match (fewest path
+# separators), since the zip can contain more than one package.json now
+# (e.g. crawler/package.json alongside the real root one).
+#
+# NOTE: an earlier version of this used `wc -c | cut -d' ' -f2-` to parse
+# the depth count. That broke silently on macOS specifically: BSD wc
+# right-pads its output with leading spaces (e.g. "       7" instead of
+# Linux GNU wc's plain "7"), and `cut -d' '` treats each of those spaces
+# as a separate delimiter, splitting the padding itself into the captured
+# value instead of just the path. The result LOOKED like it printed
+# correctly-ish ("Source root:       7 /path/to/build") but SRC_ROOT
+# actually held that whole garbled string, which meant every subsequent
+# `[ -e "$SRC_ROOT/$p" ]` check silently failed and nothing was copied —
+# while the "✓ Synced: ..." line printed the full expected list anyway
+# regardless of what actually happened (a second, separate bug, also
+# fixed below). This version avoids string-splitting a padded number
+# entirely: SRC_ROOT is assigned directly from the clean path, and depth
+# is only ever used inside `$(( ))` arithmetic context, which strips
+# leading/trailing whitespace when parsing an operand regardless of
+# platform — verified against a simulated padded value before shipping.
+SRC_ROOT=""
+BEST_DEPTH=999999
+while IFS= read -r d; do
+  raw_count=$(printf '%s' "$d" | tr -cd '/' | wc -c)
+  depth=$(( raw_count ))
+  if [ "$depth" -lt "$BEST_DEPTH" ]; then
+    BEST_DEPTH=$depth
+    SRC_ROOT="$d"
+  fi
+done < <(find "$TMP_DIR" -name package.json -exec dirname {} \;)
 [ -n "${SRC_ROOT:-}" ] || fail "Couldn't find package.json inside the zip — is this the right file?"
 ok "Source root: $SRC_ROOT"
 
@@ -71,10 +97,15 @@ ok "Source root: $SRC_ROOT"
 # node_modules, dist, any file you added locally that isn't in the zip)
 # is left completely untouched.
 SYNC_PATHS=(src docs public index.html package.json tailwind.config.cjs postcss.config.cjs vite.config.ts tsconfig.json README.md crawler .github netlify netlify.toml)
+SYNCED_PATHS=()
+MISSING_PATHS=()
 
 for p in "${SYNC_PATHS[@]}"; do
   SRC_PATH="$SRC_ROOT/$p"
-  [ -e "$SRC_PATH" ] || continue
+  if [ ! -e "$SRC_PATH" ]; then
+    MISSING_PATHS+=("$p")
+    continue
+  fi
   if [ -d "$SRC_PATH" ]; then
     mkdir -p "$PROJECT_DIR/$p"
     if command -v rsync >/dev/null 2>&1; then
@@ -90,8 +121,23 @@ for p in "${SYNC_PATHS[@]}"; do
   else
     cp -f "$SRC_PATH" "$PROJECT_DIR/$p"
   fi
+  SYNCED_PATHS+=("$p")
 done
-ok "Synced: ${SYNC_PATHS[*]}"
+
+# This used to unconditionally print the full configured SYNC_PATHS list
+# regardless of whether each path actually existed and got copied — a
+# real bug that masked the SRC_ROOT detection bug above for an entire
+# session, since the script confidently reported success while silently
+# copying nothing at all. Now reports only what genuinely happened.
+if [ "${#SYNCED_PATHS[@]}" -gt 0 ]; then
+  ok "Synced: ${SYNCED_PATHS[*]}"
+fi
+if [ "${#MISSING_PATHS[@]}" -gt 0 ]; then
+  warn "Not found in zip, skipped: ${MISSING_PATHS[*]}"
+fi
+if [ "${#SYNCED_PATHS[@]}" -eq 0 ]; then
+  fail "Nothing was actually synced — SRC_ROOT may be wrong. Source root was: $SRC_ROOT"
+fi
 
 # ---------------------------------------------------------------------------
 step "3/6  Installing dependencies (only reinstalls what changed)"

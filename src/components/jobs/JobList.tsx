@@ -22,7 +22,8 @@ export default function JobList() {
   const [page, setPage] = useState(1)
   const [activeFn, setActiveFn] = useState<string | null>(null)
   const [activeSeniority, setActiveSeniority] = useState<string | null>(null)
-  const [remoteOnly, setRemoteOnly] = useState(false)
+  const [workMode, setWorkMode] = useState<string | null>(null)
+  const [activeCity, setActiveCity] = useState<string | null>(null)
   const [view, setView] = useState<ViewMode>('grid')
   const [sort, setSort] = useState<SortMode>('newest')
 
@@ -59,6 +60,10 @@ export default function JobList() {
     () => Array.from(new Set(jobs.map((j) => j.seniority).filter(Boolean))).sort(),
     [jobs],
   )
+  const cities = useMemo(
+    () => Array.from(new Set(jobs.map((j) => j.city).filter(Boolean))).sort(),
+    [jobs],
+  )
 
   const filtered = useMemo(() => {
     let result = jobs
@@ -70,9 +75,10 @@ export default function JobList() {
     }
     if (activeFn) result = result.filter((j) => j.fn === activeFn)
     if (activeSeniority) result = result.filter((j) => j.seniority === activeSeniority)
-    if (remoteOnly) result = result.filter((j) => j.mode === 'remote')
+    if (workMode) result = result.filter((j) => j.mode === workMode)
+    if (activeCity) result = result.filter((j) => j.city === activeCity)
     return result
-  }, [jobs, q, activeFn, activeSeniority, remoteOnly])
+  }, [jobs, q, activeFn, activeSeniority, workMode, activeCity])
 
   // "Newest" is genuinely chronological (posted_at desc). "Most relevant"
   // only means something when there's a search query — exact title
@@ -110,8 +116,11 @@ export default function JobList() {
           seniorities={seniorities}
           activeSeniority={activeSeniority}
           onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s) }}
-          remoteOnly={remoteOnly}
-          onRemoteToggle={() => { setPage(1); setRemoteOnly((v) => !v) }}
+          workMode={workMode}
+          onWorkModeChange={(m) => { setPage(1); setWorkMode(m) }}
+          cities={cities}
+          activeCity={activeCity}
+          onCityChange={(c) => { setPage(1); setActiveCity(c) }}
         />
       </div>
 
