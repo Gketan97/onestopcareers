@@ -118,7 +118,7 @@ export default function JobDetail() {
         )}
 
         {job && (
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10 animate-fade-in-up">
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10 items-start animate-fade-in-up">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="w-1 h-8 rounded-full" style={{ background: job.color || '#E86B35' }} />
@@ -161,7 +161,7 @@ export default function JobDetail() {
                   </div>
                 )}
                 {desc !== null && desc.available && (
-                  <p className="text-text-secondary leading-relaxed whitespace-pre-line">{desc.description}</p>
+                  <p className="text-text-secondary leading-relaxed whitespace-pre-line break-words">{desc.description}</p>
                 )}
                 {desc !== null && !desc.available && (
                   <p className="text-text-secondary leading-relaxed">
@@ -175,8 +175,13 @@ export default function JobDetail() {
               </div>
             </div>
 
-            {/* Sidebar — Career Circle CTA, real link, not a dead one. */}
-            <aside className="lg:sticky lg:top-8 self-start">
+            {/* Sidebar — Career Circle CTA, real link, not a dead one.
+                Sticky positioning removed (2026-08-23) — was likely
+                causing the "description overflows below the callout"
+                bug: a sticky element can visually overlap content
+                that follows its container in edge cases. Top-aligned,
+                scrolls normally now — lower risk, same information. */}
+            <aside className="self-start">
               <div className="border border-border-default rounded-md p-6 bg-bg-surface">
                 <Users size={20} className="text-accent mb-3" aria-hidden="true" />
                 <p className="font-display text-lg leading-snug mb-2">

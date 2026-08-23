@@ -55,16 +55,16 @@ export default function JobCard({
         onKeyDown={(e) => e.key === 'Enter' && goToJob()}
         role="button"
         tabIndex={0}
-        style={style}
-        className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md p-4 flex flex-col gap-3 cursor-pointer transition-all hover:border-border-default hover:-translate-y-px hover:shadow-md h-full"
+        style={{ ...style, borderTopColor: color, borderTopWidth: '2px' }}
+        className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md p-4 flex flex-col gap-3 cursor-pointer transition-all hover:border-border-default hover:-translate-y-px hover:shadow-lg h-full"
       >
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <CompanyAvatar name={job.company} color={color} size={26} />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <CompanyAvatar name={job.company} color={color} size={28} />
             <Link
               to={`/companies/${companySlug(job.company)}`}
               onClick={stopAndGoToCompany}
-              className="text-xs text-text-secondary hover:text-text-primary truncate"
+              className="text-[13px] font-medium text-text-primary hover:text-accent truncate"
             >
               {job.company}
             </Link>
@@ -94,20 +94,20 @@ export default function JobCard({
       onKeyDown={(e) => e.key === 'Enter' && goToJob()}
       role="button"
       tabIndex={0}
-      style={style}
-      className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md px-6 py-5 flex items-center justify-between gap-6 cursor-pointer transition-all hover:border-border-default hover:-translate-y-px hover:shadow-md"
+      style={{ ...style, borderLeftColor: color, borderLeftWidth: '3px' }}
+      className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md px-6 py-5 flex items-center justify-between gap-6 cursor-pointer transition-all hover:border-border-default hover:-translate-y-px hover:shadow-lg"
     >
       <div className="flex gap-4 items-start flex-1 min-w-0">
-        <CompanyAvatar name={job.company} color={color} size={40} />
+        <CompanyAvatar name={job.company} color={color} size={42} />
         <div className="min-w-0">
           <Link
             to={`/companies/${companySlug(job.company)}`}
             onClick={stopAndGoToCompany}
-            className="text-sm text-text-secondary hover:text-text-primary"
+            className="text-[15px] font-medium text-text-primary hover:text-accent"
           >
             {job.company}
           </Link>
-          <div className="flex items-center gap-2.5 flex-wrap mt-0.5">
+          <div className="flex items-center gap-2.5 flex-wrap mt-1">
             <span className="text-base font-semibold">{job.title}</span>
           </div>
           <div className="flex gap-3.5 mt-2.5 flex-wrap font-mono text-[11.5px] text-text-tertiary items-center">

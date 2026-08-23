@@ -1,38 +1,35 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  ArrowRight, Filter, Briefcase, FileCheck2, BookOpen, Sparkles,
-  Compass, Quote,
-} from 'lucide-react'
+import { ArrowRight, Quote } from 'lucide-react'
 import Layout from '../components/shell/Layout'
 import Button from '../components/ui/Button'
 import Skeleton from '../components/ui/Skeleton'
 import JobCard from '../components/jobs/JobCard'
 import FragmentedJourney from '../components/home/FragmentedJourney'
-import PainPointCards from '../components/home/PainPointCards'
 import PlatformPillars from '../components/home/PlatformPillars'
+import ProductFrame from '../components/home/ProductFrame'
+import CareerPathPreview from '../components/home/CareerPathPreview'
+import ProjectsPreview from '../components/home/ProjectsPreview'
+import CareerPrepPreview from '../components/home/CareerPrepPreview'
 import CareerCircleMockup from '../components/home/CareerCircleMockup'
 import AITransition from '../components/home/AITransition'
-import CareerJourney from '../components/home/CareerJourney'
 import { fetchJobs } from '../lib/jobs/fetchJobs'
 import type { Job } from '../lib/jobs/types'
 
-// Full homepage rebuild, 2026-08-23, per a complete strategy brief the
-// user provided directly. Two deliberate overrides from that brief,
-// documented in design doc §3 home-page-v7 note:
-//   1. Jobs section uses REAL live data (fetchJobs), not the brief's
-//      suggested fictional sample cards — we already have real ones.
-//   2. No testimonials at all, not even labeled-sample ones (stricter
-//      than the labeled-dummy approach shipped last round) — the brief
-//      explicitly forbids fabricated quotes, even placeholder-labeled.
+// Full homepage rebuild, 2026-08-23, from a second strategy brief with a
+// stricter narrative discipline than the first: "do not repeat the same
+// promise in multiple sections," and pain-point cards explicitly
+// forbidden immediately after the problem section (they'd restate it).
+// Answers, in order: What is this? -> Why do I need it? -> How does it
+// work? -> Show me the product -> Can I trust it? -> What do I do next?
+// See design doc for the full reasoning behind what was cut/consolidated
+// from the previous rebuild to avoid repetition.
 
 export default function Home() {
   const [allJobs, setAllJobs] = useState<Job[] | null>(null)
 
   useEffect(() => {
-    fetchJobs()
-      .then(setAllJobs)
-      .catch(() => setAllJobs([]))
+    fetchJobs().then(setAllJobs).catch(() => setAllJobs([]))
   }, [])
 
   const analyticsJobs = useMemo(
@@ -43,213 +40,200 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* ===================== HERO ===================== */}
+      {/* ===================== 1. HERO — what is this? ===================== */}
       <section className="max-w-[900px] mx-auto px-6 md:px-12 pt-20 md:pt-28 pb-20 text-center">
-        <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-6 animate-fade-in-up">
-          Built for people building careers in analytics.
-        </div>
         <h1 className="font-display text-5xl md:text-7xl leading-[1.05] animate-blur-in">
-          Build a better <em className="text-accent not-italic italic">analytics career.</em>
+          Fast-Track Your <em className="text-accent not-italic italic">Analytics Career.</em>
         </h1>
         <p className="mt-6 text-xl text-text-secondary leading-relaxed max-w-xl mx-auto animate-blur-in" style={{ animationDelay: '80ms' }}>
-          Everything you need to grow in analytics — opportunities, real-world
-          experience, people to learn from, and a path to stay ahead of AI.
+          Know what to learn, what to build, and what to do next.
         </p>
         <div className="flex flex-wrap gap-3.5 mt-9 items-center justify-center animate-blur-in" style={{ animationDelay: '150ms' }}>
-          <Link to="/jobs">
+          <a href="#product">
             <Button className="group">
-              Start Building My Career
+              Build My Career Path
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </Button>
-          </Link>
+          </a>
           <Link to="/jobs">
-            <Button variant="secondary">Explore Analytics Jobs</Button>
+            <Button variant="secondary">Explore Opportunities</Button>
           </Link>
         </div>
       </section>
 
-      {/* ===================== CORE PROBLEM ===================== */}
+      {/* ===================== 2. PROBLEM — why do I need it? ===================== */}
+      {/* No pain-point cards after this, on purpose — the brief flagged
+          that as restating this same section's promise a second time. */}
       <section className="bg-bg-sunken px-6 md:px-12 py-20 md:py-24">
         <div className="max-w-[1040px] mx-auto text-center">
           <h2 className="font-display text-3xl md:text-4xl leading-tight mb-5">
             Your analytics career is more than a job search.
           </h2>
           <p className="text-text-secondary max-w-xl mx-auto leading-relaxed mb-12">
-            Right now, building an analytics career means stitching together
-            a job board here, a course there, a WhatsApp group somewhere else
-            — and trying to make sense of AI on your own in between. We bring
-            it together instead.
+            Building an analytics career today means piecing together
+            courses, projects, job boards, communities, mentors, resume
+            tools, and AI tools &mdash; and figuring out what actually
+            matters along the way. We bring it together.
           </p>
           <FragmentedJourney />
         </div>
       </section>
 
-      {/* ===================== FOUR PAIN POINTS ===================== */}
+      {/* ===================== 3. HOW IT WORKS ===================== */}
+      {/* AI is not a fifth pillar here &mdash; it's named as the changing
+          context the other four operate inside, per the brief's explicit
+          instruction not to let it read as a disconnected feature. */}
       <section className="max-w-[1040px] mx-auto px-6 md:px-12 py-20 md:py-24">
-        <PainPointCards />
-      </section>
-
-      {/* ===================== PLATFORM PILLARS ===================== */}
-      <section className="bg-bg-sunken px-6 md:px-12 py-20 md:py-24">
-        <div className="max-w-[1040px] mx-auto">
-          <h2 className="font-display text-3xl md:text-4xl text-center mb-16">
-            One career. Everything you need to move it forward.
+        <div className="text-center mb-4">
+          <h2 className="font-display text-3xl md:text-4xl">
+            One career. One clear path forward.
           </h2>
+          <p className="text-text-tertiary text-sm mt-3 max-w-md mx-auto">
+            All four, against the same backdrop: AI is changing what
+            analytics work even means &mdash; underneath everything below,
+            not off to the side as one more thing to learn.
+          </p>
+        </div>
+        <div className="mt-12">
           <PlatformPillars />
         </div>
       </section>
 
-      {/* ===================== CAREER CIRCLE ===================== */}
-      <section className="max-w-[1040px] mx-auto px-6 md:px-12 py-20 md:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-          <div>
-            <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-5">
-              A peer network, not another group chat.
+      {/* ===================== 4. SHOW THE PRODUCT — can I trust it? ===================== */}
+      <div id="product" className="scroll-mt-6">
+        {/* 4a. Career Path — preview */}
+        <section className="bg-bg-sunken px-6 md:px-12 py-16 md:py-20">
+          <div className="max-w-[1040px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            <div>
+              <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-4">Career Path</div>
+              <h3 className="font-display text-3xl md:text-4xl leading-tight">What should I do next?</h3>
+              <p className="mt-5 text-text-secondary leading-relaxed">
+                A clear view of where you are and what actually moves you
+                forward &mdash; not a generic syllabus, a path built around
+                your specific stage.
+              </p>
             </div>
-            <h2 className="font-display text-4xl md:text-5xl leading-[1.1]">
-              You shouldn&#8217;t have to figure out your career alone.
-            </h2>
-            <p className="mt-6 text-lg text-text-secondary leading-relaxed">
-              Meet your Career Circle — a small peer network of analytics
-              professionals at a similar stage of their journey. Share
-              opportunities, exchange referrals, discuss interviews, ask the
-              question you&#8217;re embarrassed to ask anywhere else, and learn
-              from people who&#8217;ve actually lived it.
-            </p>
-            <div className="flex gap-3.5 mt-8 items-center flex-wrap">
-              <Link to="/career-circle">
-                <Button variant="secondary" className="group">
-                  Join a Career Circle
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                </Button>
-              </Link>
-            </div>
+            <ProductFrame label="Career Path" status="preview">
+              <CareerPathPreview />
+            </ProductFrame>
           </div>
-          <CareerCircleMockup />
-        </div>
-      </section>
+        </section>
 
-      {/* ===================== JOBS ===================== */}
-      {/* Real live data (fetchJobs), not the brief's suggested fictional
-          sample cards — see the override note at the top of this file. */}
-      <section className="bg-bg-sunken px-6 md:px-12 py-20 md:py-24">
-        <div className="max-w-[1040px] mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-4xl md:text-5xl leading-[1.1]">
-              Find analytics opportunities worth your time.
-            </h2>
-            <p className="mt-5 text-lg text-text-secondary leading-relaxed max-w-lg mx-auto">
-              Spend less time searching and more time applying to roles that
-              actually fit where you&#8217;re headed.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 justify-center mb-8 flex-wrap">
-            <Filter size={13} className="text-text-tertiary" aria-hidden="true" />
-            {['Role', 'Experience', 'Location', 'Remote', 'Skills'].map((f) => (
-              <span key={f} className="font-mono text-[11px] text-text-tertiary border border-border-default rounded-full px-3 py-1.5">{f}</span>
-            ))}
-            <span className="font-mono text-[11px] text-text-tertiary ml-1">— filter on the full Jobs page</span>
-          </div>
-
-          <div className="rounded-lg border border-border-default bg-bg-surface overflow-hidden shadow-lg max-w-[720px] mx-auto">
-            <div className="flex items-center gap-1.5 px-4 py-3 border-b border-border-subtle bg-bg-elevated">
-              <span className="w-2.5 h-2.5 rounded-full bg-border-default" />
-              <span className="w-2.5 h-2.5 rounded-full bg-border-default" />
-              <span className="w-2.5 h-2.5 rounded-full bg-border-default" />
-              <span className="ml-3 font-mono text-[11px] text-text-tertiary">onestopcareers.com/jobs</span>
-            </div>
-            <div className="p-5 md:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-[11px] text-text-tertiary">
-                  {analyticsCount === null ? 'Loading live data…' : `${analyticsCount.toLocaleString()} analytics roles live right now`}
-                </span>
-                <span className="flex items-center gap-1.5 text-[11px] font-mono text-green">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" /> live
-                </span>
-              </div>
-              <div className="flex flex-col gap-3">
-                {allJobs === null && [...Array(3)].map((_, i) => <Skeleton key={i} className="h-[92px]" />)}
-                {allJobs !== null && analyticsJobs.length === 0 && (
-                  <p className="text-sm text-text-tertiary py-6 text-center">No analytics roles matched right now &mdash; check back soon.</p>
-                )}
-                {allJobs !== null && analyticsJobs.slice(0, 3).map((job, i) => <JobCard key={job.id} job={job} index={i} />)}
+        {/* 4b. Opportunities / Jobs — live, real data */}
+        <section className="px-6 md:px-12 py-16 md:py-20">
+          <div className="max-w-[1040px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            <div className="lg:order-2">
+              <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-4">Opportunities</div>
+              <h3 className="font-display text-3xl md:text-4xl leading-tight">Where can I go?</h3>
+              <p className="mt-5 text-text-secondary leading-relaxed">
+                Real analytics roles, pulled straight from company career
+                pages &mdash; refreshed daily, checked before they reach you.
+              </p>
+              <div className="mt-6">
+                <Link to="/jobs">
+                  <Button className="group">
+                    Explore Opportunities
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </Button>
+                </Link>
               </div>
             </div>
+            <div className="lg:order-1">
+              <ProductFrame label="onestopcareers.com/jobs" status="live">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-mono text-[11px] text-text-tertiary">
+                    {analyticsCount === null ? 'Loading live data…' : `${analyticsCount.toLocaleString()} analytics roles live right now`}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {allJobs === null && [...Array(3)].map((_, i) => <Skeleton key={i} className="h-[92px]" />)}
+                  {allJobs !== null && analyticsJobs.length === 0 && (
+                    <p className="text-sm text-text-tertiary py-6 text-center">No analytics roles matched right now.</p>
+                  )}
+                  {allJobs !== null && analyticsJobs.slice(0, 3).map((job, i) => <JobCard key={job.id} job={job} index={i} compact />)}
+                </div>
+              </ProductFrame>
+            </div>
           </div>
+        </section>
 
-          <div className="flex justify-center mt-8">
-            <Link to="/jobs">
-              <Button className="group">
-                Explore Analytics Jobs
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-              </Button>
-            </Link>
+        {/* 4c. Projects / Learning — preview */}
+        <section className="bg-bg-sunken px-6 md:px-12 py-16 md:py-20">
+          <div className="max-w-[1040px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            <div>
+              <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-4">Projects &amp; Learning</div>
+              <h3 className="font-display text-3xl md:text-4xl leading-tight">How do I build capability?</h3>
+              <p className="mt-5 text-text-secondary leading-relaxed">
+                Real-world practice, not another course you don&#8217;t
+                finish &mdash; something you can actually point to.
+              </p>
+            </div>
+            <ProductFrame label="Projects" status="preview">
+              <ProjectsPreview />
+            </ProductFrame>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ===================== FUTURE VISION ===================== */}
-      <section id="future-vision" className="max-w-[1040px] mx-auto px-6 md:px-12 py-20 md:py-24 scroll-mt-6">
-        <div className="text-center mb-14">
-          <h2 className="font-display text-4xl md:text-5xl leading-[1.1]">And we&#8217;re just getting started.</h2>
-          <p className="mt-5 text-lg text-text-secondary leading-relaxed max-w-lg mx-auto">
-            Your career doesn&#8217;t stop at finding a job. We&#8217;re building the
-            tools, experiences, and community to help you keep growing long
-            after you land one.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <RoadmapCard icon={Briefcase} title="Real-world projects" desc="Build proof of what you can actually do." />
-          <RoadmapCard icon={FileCheck2} title="Resume & interview support" desc="Turn your experience into a stronger career story." />
-          <RoadmapCard icon={BookOpen} title="Curated resources" desc="Spend less time searching and more time learning what matters." />
-          <RoadmapCard icon={Sparkles} title="AI readiness" desc="Understand how analytics work is changing — and how to stay valuable." />
-          <RoadmapCard icon={Compass} title="Career guidance" desc="Know what to focus on next as your career evolves." />
-        </div>
-      </section>
-
-      {/* ===================== AI ===================== */}
-      <section className="bg-bg-sunken px-6 md:px-12 py-20 md:py-24">
-        <div className="max-w-[1040px] mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-4xl md:text-5xl leading-[1.1]">
-              Analytics is changing. Your career should evolve with it.
-            </h2>
-            <p className="mt-5 text-lg text-text-secondary leading-relaxed max-w-xl mx-auto">
-              AI is making technical execution faster. That makes analytical
-              thinking, problem framing, business judgment, communication,
-              and the ability to work effectively with AI more important
-              &mdash; not less.
-            </p>
+        {/* 4d. Career Circle / Community */}
+        <section className="px-6 md:px-12 py-16 md:py-20">
+          <div className="max-w-[1040px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            <div className="lg:order-2">
+              <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-4">Career Circle</div>
+              <h3 className="font-display text-3xl md:text-4xl leading-tight">Who can help me?</h3>
+              <p className="mt-5 text-text-secondary leading-relaxed">
+                A small peer network, not another group chat &mdash; people
+                at your exact stage, sharing referrals and answering the
+                question you&#8217;re embarrassed to ask anywhere else.
+              </p>
+              <div className="mt-6">
+                <Link to="/career-circle">
+                  <Button variant="secondary" className="group">
+                    Learn more
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="lg:order-1">
+              <CareerCircleMockup />
+            </div>
           </div>
-          <AITransition />
-          <div className="flex justify-center mt-10">
-            <a href="#future-vision">
-              <Button variant="secondary" className="group">
-                Prepare for What&#8217;s Next
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-              </Button>
-            </a>
+        </section>
+
+        {/* 4e. Career preparation — preview */}
+        <section className="bg-bg-sunken px-6 md:px-12 py-16 md:py-20">
+          <div className="max-w-[1040px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            <div>
+              <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-4">Career Preparation</div>
+              <h3 className="font-display text-3xl md:text-4xl leading-tight">How do I present myself?</h3>
+              <p className="mt-5 text-text-secondary leading-relaxed">
+                Turn what you&#8217;ve actually done into a resume,
+                portfolio, and interview story that holds up.
+              </p>
+            </div>
+            <ProductFrame label="Career Prep" status="preview">
+              <CareerPrepPreview />
+            </ProductFrame>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ===================== CAREER JOURNEY ===================== */}
-      <section className="max-w-[1040px] mx-auto px-6 md:px-12 py-20 md:py-24">
-        <h2 className="font-display text-3xl md:text-4xl text-center mb-4">
-          A platform for your whole career, not just your next job.
-        </h2>
-        <p className="text-text-secondary text-center max-w-lg mx-auto leading-relaxed mb-16">
-          One Stop Careers stays useful throughout your career &mdash; not
-          only when you&#8217;re looking for a job.
-        </p>
-        <CareerJourney />
-      </section>
+        {/* 4f. AI readiness */}
+        <section className="px-6 md:px-12 py-16 md:py-20">
+          <div className="max-w-[1040px] mx-auto">
+            <div className="text-center mb-10">
+              <div className="font-mono text-xs uppercase tracking-wide text-text-tertiary mb-4">AI Readiness</div>
+              <h3 className="font-display text-3xl md:text-4xl leading-tight">How do I stay relevant?</h3>
+              <p className="mt-5 text-text-secondary leading-relaxed max-w-lg mx-auto">
+                AI is making technical execution faster &mdash; that makes
+                judgment, framing, and business thinking more valuable, not less.
+              </p>
+            </div>
+            <AITransition />
+          </div>
+        </section>
+      </div>
 
-      {/* ===================== SOCIAL PROOF (NO FABRICATED QUOTES) ===================== */}
-      {/* Per the brief: do NOT invent testimonials, not even labeled
-          placeholders. Structurally ready for real quotes, empty until
-          they exist. See design doc §3 override note. */}
+      {/* ===================== 5. PROOF — can I trust it? ===================== */}
       <section className="bg-bg-sunken px-6 md:px-12 py-20 md:py-24">
         <div className="max-w-[1040px] mx-auto text-center">
           <h2 className="font-display text-3xl md:text-4xl mb-10">
@@ -271,43 +255,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===================== FINAL CTA ===================== */}
+      {/* ===================== 6. FINAL CTA — what do I do next? ===================== */}
       <section className="max-w-[900px] mx-auto px-6 md:px-12 py-24 md:py-28 text-center">
         <h2 className="font-display text-4xl md:text-6xl leading-[1.08]">
-          Your next career move starts here.
+          Ready to move your analytics career forward?
         </h2>
-        <p className="mt-6 text-lg text-text-secondary leading-relaxed max-w-xl mx-auto">
-          Whether you&#8217;re looking for your next opportunity, figuring out
-          what to learn, or preparing for the future of analytics &mdash; you
-          don&#8217;t have to figure it out alone.
-        </p>
         <div className="flex flex-wrap gap-3.5 mt-9 items-center justify-center">
           <Link to="/jobs">
             <Button className="group">
-              Start Building My Career
+              Build My Career Path
               <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </Button>
-          </Link>
-          <Link to="/jobs">
-            <Button variant="secondary">Explore Analytics Jobs</Button>
           </Link>
         </div>
       </section>
     </Layout>
-  )
-}
-
-function RoadmapCard({ icon: Icon, title, desc }: { icon: typeof Briefcase; title: string; desc: string }) {
-  return (
-    <div className="bg-bg-surface border border-border-subtle rounded-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <Icon size={18} className="text-text-tertiary" aria-hidden="true" />
-        <span className="font-mono text-[10px] uppercase tracking-wide text-text-tertiary border border-border-default rounded-full px-2.5 py-1">
-          Coming soon
-        </span>
-      </div>
-      <h3 className="font-display text-lg mb-1.5">{title}</h3>
-      <p className="text-sm text-text-secondary leading-relaxed">{desc}</p>
-    </div>
   )
 }

@@ -70,3 +70,11 @@ input:focus-visible,
   .animate-draw-line { animation: none; stroke-dashoffset: 0; }
   html { scroll-behavior: auto; }
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

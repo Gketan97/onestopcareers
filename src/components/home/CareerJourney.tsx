@@ -1,3 +1,8 @@
+// STATUS: unused as of 2026-08-23 — removed from Home.tsx, the user
+// flagged it as redundant with the Platform Pillars section (both cover
+// the same "we're useful across your whole career" idea, just with
+// slightly different labels). Left in the repo, not deleted, per
+// standing practice for superseded components.
 const stages = [
   { label: 'START', desc: 'Learn the fundamentals' },
   { label: 'BUILD', desc: 'Work on real projects' },
