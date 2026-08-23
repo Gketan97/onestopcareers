@@ -11,3 +11,62 @@ body {
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Every interactive element gets a visible focus state — this was
+   completely missing before (see FAANG-lens audit, 2026-08-20). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up var(--dur-base) var(--ease-out) both;
+}
+
+@keyframes blur-in {
+  from { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0);     filter: blur(0); }
+}
+.animate-blur-in {
+  animation: blur-in 600ms var(--ease-out) both;
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(16px); filter: blur(4px); }
+  to   { opacity: 1; transform: translateX(0);     filter: blur(0); }
+}
+.animate-slide-in {
+  animation: slide-in 550ms var(--ease-out) both;
+}
+
+@keyframes fill-bar {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+.animate-fill-bar {
+  animation: fill-bar linear forwards;
+}
+
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+.animate-draw-line {
+  animation: draw-line 700ms var(--ease-out) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up { animation: none; }
+  .animate-blur-in { animation: none; }
+  .animate-slide-in { animation: none; }
+  .animate-fill-bar { animation: none; }
+  .animate-draw-line { animation: none; stroke-dashoffset: 0; }
+  html { scroll-behavior: auto; }
+}

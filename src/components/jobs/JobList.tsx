@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { LayoutGrid, List as ListIcon } from 'lucide-react'
 import { fetchJobs } from '../../lib/jobs/fetchJobs'
 import type { Job } from '../../lib/jobs/types'
 import JobCard from './JobCard'
@@ -96,7 +97,7 @@ export default function JobList() {
       )}
 
       {error && (
-        <p className="text-red text-sm py-8">Couldn&apos;t load jobs right now: {error}</p>
+        <p className="text-red text-sm py-8">Couldn’t load jobs right now: {error}</p>
       )}
 
       {loading && (
@@ -117,8 +118,8 @@ export default function JobList() {
               : 'flex flex-col gap-3'
           }
         >
-          {paginated.map((job) => (
-            <JobCard key={job.id} job={job} query={q} compact={view === 'grid'} />
+          {paginated.map((job, i) => (
+            <JobCard key={job.id} job={job} query={q} compact={view === 'grid'} index={i} />
           ))}
         </div>
       )}
@@ -140,19 +141,23 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
       <button
         onClick={() => onChange('grid')}
         aria-label="Grid view"
-        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+        aria-pressed={view === 'grid'}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
           view === 'grid' ? 'bg-accent-soft text-accent' : 'text-text-tertiary hover:text-text-secondary'
         }`}
       >
+        <LayoutGrid size={14} aria-hidden="true" />
         Grid
       </button>
       <button
         onClick={() => onChange('list')}
         aria-label="List view"
-        className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+        aria-pressed={view === 'list'}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors ${
           view === 'list' ? 'bg-accent-soft text-accent' : 'text-text-tertiary hover:text-text-secondary'
         }`}
       >
+        <ListIcon size={14} aria-hidden="true" />
         List
       </button>
     </div>

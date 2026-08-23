@@ -24,12 +24,13 @@ export default function App() {
         {/* <Route path="/admin/jobs/new" element={<AdminJobSubmissionForm />} /> */}
 
         {/* Future modules — not built yet, routes reserved per design doc §4.
-            Canonical names: Jobs (live), CareerCircle (live), Resources, Success stories.
-            Don't add a route/label pair here without also adding it to
-            navConfig.ts and the Home.tsx Services strip — see design doc §2. */}
-        {/* <Route path="/success-stories" element={<SuccessStories />} /> */}
-        {/* <Route path="/success-stories/:slug" element={<SuccessStoryDetail />} /> */}
+            Canonical nav (2026-08-23): Jobs, Career Circle (both live),
+            Resources, Projects, AI (none live yet). Don't add a route/label
+            pair here without also adding it to navConfig.ts — see design
+            doc §2 and the home-page-v7 note. */}
         {/* <Route path="/resources" element={<Resources />} /> */}
+        {/* <Route path="/projects" element={<Projects />} /> */}
+        {/* <Route path="/ai" element={<AI />} /> */}
       </Routes>
     </BrowserRouter>
   )

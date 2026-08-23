@@ -1,33 +1,67 @@
-/* Design tokens — see docs/DESIGN_DOC.md §3 for rationale. Light theme only. */
+/* Design tokens — see docs/DESIGN_DOC.md §3 for rationale.
+   Dark theme, switched from light-only on 2026-08-20 — see design doc
+   §3 for the reversal note. Same editorial restraint carries forward:
+   warm near-black, not pure black; warm off-white text, not pure white;
+   one accent color, no rainbow gradients. */
 :root {
-  /* Surfaces */
-  --bg-base:        #FAF9F6;
-  --bg-surface:     #FFFFFF;
-  --bg-elevated:    #FFFFFF;
-  --bg-sunken:      #F1EFEA;
+  /* Surfaces — warm charcoal, not pure black. Each step up is a
+     deliberate lightness increase for section/card contrast. */
+  --bg-base:        #0E0D0C;
+  --bg-sunken:      #17140F;
+  --bg-surface:     #1D1A16;
+  --bg-elevated:    #232019;
+  --bg-skeleton:    rgba(255,255,255,0.06);
 
-  /* Text */
-  --text-primary:   #1A1815;
-  --text-secondary: #6B6862;
-  --text-tertiary:  #A6A29A;
+  /* Text — warm off-white, not pure white (matches the warm-neutral
+     surfaces rather than clashing with cool pure white/gray). */
+  --text-primary:   #F3F0E9;
+  --text-secondary: #A6A096;
+  --text-tertiary:  #847E72;
 
-  /* Accent */
-  --accent:         #D65A2B;
-  --accent-soft:    rgba(214,90,43,0.08);
-  --accent-border:  rgba(214,90,43,0.25);
+  /* For the "inverted" CTA-block pattern (bg-text-primary as a
+     standalone card background — a light card floating on the dark
+     page). Needs its own secondary-text token: --text-secondary is
+     calibrated for light-text-on-dark-surface, the opposite direction
+     of contrast this block needs. Previously this was hardcoded as
+     `text-white/60`, which broke silently when the theme went dark
+     (white-on-near-white). See CareerCircle.tsx closing CTA. */
+  --text-on-invert-secondary: #5C574C;
 
-  /* Semantic (recency, status) */
-  --green:  #15803D;
-  --amber:  #B45309;
-  --gray:   #78716C;
-  --red:    #B91C1C;
+  /* Accent — same hue as the light theme, brightened slightly for
+     contrast against a dark background. */
+  --accent:         #E86B35;
+  --accent-soft:    rgba(232,107,53,0.14);
+  --accent-border:  rgba(232,107,53,0.35);
 
-  /* Borders */
-  --border-subtle:  rgba(26,24,21,0.08);
-  --border-default: rgba(26,24,21,0.14);
+  /* Semantic (recency, status) — brightened for legibility on dark;
+     the light-theme values (e.g. green #15803D) read as muddy/illegible
+     on a near-black background, so these are not the same hex shifted,
+     they're re-picked for dark-surface contrast. */
+  --green:  #34D399;
+  --amber:  #FBBF24;
+  --gray:   #9C978D;
+  --red:    #F87171;
+
+  /* Borders — light-on-dark alpha strokes */
+  --border-subtle:  rgba(255,255,255,0.08);
+  --border-default: rgba(255,255,255,0.16);
 
   /* Radii */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+
+  /* Shadows — darker/higher-opacity than the light theme's, since a
+     shadow needs more contrast to read against an already-dark surface */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.45);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,0.55);
+
+  /* Focus ring — accessibility, not decoration */
+  --focus-ring: 0 0 0 3px rgba(232,107,53,0.45);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
 }

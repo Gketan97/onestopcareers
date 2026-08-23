@@ -1,3 +1,5 @@
+import { Search, X } from 'lucide-react'
+
 export default function JobSearch({
   value,
   onChange,
@@ -6,11 +8,8 @@ export default function JobSearch({
   onChange: (v: string) => void
 }) {
   return (
-    <div className="flex-1 min-w-[240px] flex items-center gap-2.5 bg-bg-surface border border-border-default rounded-md px-4 py-3">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-tertiary flex-shrink-0">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.3-4.3" />
-      </svg>
+    <div className="flex-1 min-w-[240px] flex items-center gap-2.5 bg-bg-surface border border-border-default rounded-md px-4 py-3 transition-colors focus-within:border-accent">
+      <Search size={16} className="text-text-tertiary flex-shrink-0" aria-hidden="true" />
       <input
         type="text"
         placeholder="Search title or company…"
@@ -21,10 +20,10 @@ export default function JobSearch({
       {value && (
         <button
           onClick={() => onChange('')}
-          className="text-text-tertiary hover:text-text-primary text-sm"
+          className="text-text-tertiary hover:text-text-primary rounded-full"
           aria-label="Clear search"
         >
-          ×
+          <X size={15} />
         </button>
       )}
     </div>
