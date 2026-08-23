@@ -1,7 +1,7 @@
 {
   "v": 9,
   "count": 496,
-  "updated_at": "2026-08-23T10:42:14.302Z",
+  "updated_at": "2026-08-23T11:24:00.729Z",
   "sources": {
     "greenhouse": 427,
     "lever": 69
@@ -17,6 +17,6 @@
     "Hyderabad": 7,
     "Chennai": 1
   },
-  "elapsed_s": 112.6,
+  "elapsed_s": 0.5,
   "mode": "INCREMENTAL"
 }
