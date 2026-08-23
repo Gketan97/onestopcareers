@@ -167,6 +167,12 @@ The user proposed a structure inspired by a second competitor reference (a long-
 
 **Hero motion enhancement:** pain-point lines gained per-line icons (`Search`, `BookOpen`, `Youtube`, `Compass` — each matched to its specific question) and a new `blur-in` keyframe (opacity + `translateY` + `filter: blur()`, not just the existing plain `fade-in-up`) for the H1/sub/CTA — a visibly richer reveal than before, still fully passive, per the explicit "animated only, no user interaction" decision.
 
+### Missing favicon and robots.txt found via the sync script's honesty fix (2026-08-23)
+
+The sync script's "Synced:" reporting fix (from the earlier scripting-bug saga) paid for itself immediately: the very next real run reported `! Not found in zip, skipped: public` — the first honest signal, ever, that `public/` didn't exist in the delivered build. Checked and confirmed: it genuinely never existed. This is the same favicon gap flagged all the way back in the very first platform audit (`PLATFORM_AUDIT.md`) and never actually closed across dozens of milestones since.
+
+**Fixed now:** `public/favicon.svg` — a simple on-brand mark (dark rounded square, italic serif accent-orange "o", matching the nav wordmark's own styling) — and a proper `<link rel="icon">` tag added to `index.html` (there wasn't one at all before; browsers were silently 404ing on the default `/favicon.ico` request this whole time). Also added `public/robots.txt` (`Allow: /`, no sitemap reference — deliberately not linking to a sitemap.xml that doesn't exist, since referencing a non-existent resource would be the same class of small dishonesty this project has been catching everywhere else). Verified both actually land in the real Vite build output (`dist/favicon.svg`, `dist/robots.txt`), not just present in source.
+
 ### Home page v8.1 — fixing the "two sections feel the same" problem (2026-08-23)
 
 A screenshot review caught something the code review hadn't: the Problem section's `FragmentedJourney` and the How-It-Works section's `PlatformPillars` used the identical visual pattern (uniform bordered-box grid, same spacing, same muted styling) despite meaning opposite things — one represents scattered/fragmented tools, the other represents one unified clean path. Visually they read as duplicate sections, undermining the contrast the narrative depends on.
