@@ -61,14 +61,16 @@ unzip -q "$LATEST_ZIP" -d "$TMP_DIR"
 # The zip's top-level folder name varies between exports (e.g. "build/",
 # "onestop-jobs/") — find whichever subfolder actually contains package.json
 # rather than hardcoding a name.
-SRC_ROOT=$(find "$TMP_DIR" -maxdepth 3 -name package.json -exec dirname {} \; | head -n1)
+SRC_ROOT=$(find "$TMP_DIR" -name package.json -exec dirname {} \; \
+  | while read -r d; do echo "$(echo "$d" | tr -cd '/' | wc -c) $d"; done \
+  | sort -n | head -n1 | cut -d' ' -f2-)
 [ -n "${SRC_ROOT:-}" ] || fail "Couldn't find package.json inside the zip — is this the right file?"
 ok "Source root: $SRC_ROOT"
 
 # Only these paths are synced. Anything not listed here (.git, .env,
 # node_modules, dist, any file you added locally that isn't in the zip)
 # is left completely untouched.
-SYNC_PATHS=(src docs public index.html package.json tailwind.config.cjs postcss.config.cjs vite.config.ts tsconfig.json README.md)
+SYNC_PATHS=(src docs public index.html package.json tailwind.config.cjs postcss.config.cjs vite.config.ts tsconfig.json README.md crawler .github netlify netlify.toml)
 
 for p in "${SYNC_PATHS[@]}"; do
   SRC_PATH="$SRC_ROOT/$p"
