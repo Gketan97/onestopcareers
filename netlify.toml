@@ -1,0 +1,13 @@
+# First backend infrastructure in this repo — added 2026-08-23 to support
+# on-demand job description fetching (see netlify/functions/job-description.js).
+# Everything else about the site stays a static SPA; this is the one
+# server-side piece, and it's read-only (fetches from public ATS APIs,
+# never writes anything).
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
