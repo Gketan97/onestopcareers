@@ -11,7 +11,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/jobs" element={<Jobs />} />
-        <Route path="/jobs/:id" element={<JobDetail />} />
+        <Route path="/jobs/:slug" element={<JobDetail />} />
         <Route path="/career-circle" element={<CareerCircle />} />
 
         {/* Reserved — see docs/DESIGN_DOC.md §4 for the full route map.

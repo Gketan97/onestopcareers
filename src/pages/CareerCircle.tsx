@@ -46,16 +46,16 @@ const roles = ['Data Analyst', 'Business Analyst', 'Product Analyst', 'BI Analys
 const principles = ['Give before you ask.', 'Share what you learn.', 'Help others get ahead.', 'Keep it respectful.', 'No spam.']
 
 // Honest answers using only facts already established elsewhere on the
-// site (2–5 YOE, capped at 50, WhatsApp-based) \u2014 no invented pricing
+// site (2–5 YOE, capped at 50, WhatsApp-based) — no invented pricing
 // or policy, per the brief's explicit instruction.
 const faqItems: FAQItem[] = [
-  { q: 'Who can join?', a: 'Right now, analytics professionals with 2–5 years of experience \u2014 Data Analysts, Business Analysts, Product Analysts, BI Analysts, and Analytics Engineers. We’ll expand to other career stages later.' },
-  { q: 'How are circles formed?', a: 'We group people by career stage and focus area, aiming for real overlap in what you’re working through \u2014 not a random assignment.' },
-  { q: 'How many people are in a circle?', a: 'Capped at 50 \u2014 small enough that referrals and answers actually mean something.' },
+  { q: 'Who can join?', a: 'Right now, analytics professionals with 2–5 years of experience — Data Analysts, Business Analysts, Product Analysts, BI Analysts, and Analytics Engineers. We’ll expand to other career stages later.' },
+  { q: 'How are circles formed?', a: 'We group people by career stage and focus area, aiming for real overlap in what you’re working through — not a random assignment.' },
+  { q: 'How many people are in a circle?', a: 'Capped at 50 — small enough that referrals and answers actually mean something.' },
   { q: 'What happens after I join?', a: 'You’re added to your Circle’s WhatsApp group and can start sharing, asking, and helping right away.' },
-  { q: 'Is Career Circle free?', a: 'Yes \u2014 Career Circle is free to join.' },
-  { q: 'Where does the community live?', a: 'WhatsApp, for now \u2014 where most of these conversations already happen naturally.' },
-  { q: 'Can I change circles?', a: 'Not yet \u2014 reach out and we’ll help directly. This may become self-serve later.' },
+  { q: 'Is Career Circle free?', a: 'Yes — Career Circle is free to join.' },
+  { q: 'Where does the community live?', a: 'WhatsApp, for now — where most of these conversations already happen naturally.' },
+  { q: 'Can I change circles?', a: 'Not yet — reach out and we’ll help directly. This may become self-serve later.' },
 ]
 
 export default function CareerCircle() {
@@ -72,7 +72,7 @@ export default function CareerCircle() {
           interview experiences, and career advice.
         </p>
         <div className="flex flex-wrap gap-3.5 mt-9 items-center justify-center animate-blur-in" style={{ animationDelay: '150ms' }}>
-          <Button className="group" title="Coming soon \u2014 group link not live yet">
+          <Button className="group" title="Coming soon — group link not live yet">
             Join a Career Circle
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </Button>
@@ -141,7 +141,7 @@ export default function CareerCircle() {
       <section className="max-w-[720px] mx-auto px-6 md:px-12 py-20 md:py-24">
         <h2 className="font-display text-3xl md:text-4xl text-center mb-4">What it actually feels like</h2>
         <p className="text-text-secondary text-center leading-relaxed mb-12">
-          A conceptual look at the kind of conversation that happens inside \u2014
+          A conceptual look at the kind of conversation that happens inside —
           not a real chat export.
         </p>
         <CareerCircleMockup />
@@ -203,7 +203,7 @@ export default function CareerCircle() {
           Your career is easier when you don’t build it alone.
         </h2>
         <div className="mt-9">
-          <Button className="group" title="Coming soon \u2014 group link not live yet">
+          <Button className="group" title="Coming soon — group link not live yet">
             Join a Career Circle
             <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </Button>

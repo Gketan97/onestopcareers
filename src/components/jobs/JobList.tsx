@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { LayoutGrid, List as ListIcon } from 'lucide-react'
+import { LayoutGrid, List as ListIcon, ArrowDownAZ } from 'lucide-react'
 import { fetchJobs } from '../../lib/jobs/fetchJobs'
 import type { Job } from '../../lib/jobs/types'
 import JobCard from './JobCard'
@@ -12,6 +12,7 @@ import Button from '../ui/Button'
 
 const PAGE_SIZE = 24
 type ViewMode = 'grid' | 'list'
+type SortMode = 'newest' | 'relevant'
 
 export default function JobList() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -20,9 +21,10 @@ export default function JobList() {
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [activeFn, setActiveFn] = useState<string | null>(null)
+  const [activeSeniority, setActiveSeniority] = useState<string | null>(null)
   const [remoteOnly, setRemoteOnly] = useState(false)
-  // Grid is the default — denser, more roles visible without scrolling.
   const [view, setView] = useState<ViewMode>('grid')
+  const [sort, setSort] = useState<SortMode>('newest')
 
   const q = searchParams.get('q') || ''
 
@@ -53,6 +55,10 @@ export default function JobList() {
     () => Array.from(new Set(jobs.map((j) => j.fn))).sort(),
     [jobs],
   )
+  const seniorities = useMemo(
+    () => Array.from(new Set(jobs.map((j) => j.seniority).filter(Boolean))).sort(),
+    [jobs],
+  )
 
   const filtered = useMemo(() => {
     let result = jobs
@@ -63,38 +69,63 @@ export default function JobList() {
       )
     }
     if (activeFn) result = result.filter((j) => j.fn === activeFn)
+    if (activeSeniority) result = result.filter((j) => j.seniority === activeSeniority)
     if (remoteOnly) result = result.filter((j) => j.mode === 'remote')
     return result
-  }, [jobs, q, activeFn, remoteOnly])
+  }, [jobs, q, activeFn, activeSeniority, remoteOnly])
 
-  const paginated = filtered.slice(0, page * PAGE_SIZE)
-  const hasMore = paginated.length < filtered.length
+  // "Newest" is genuinely chronological (posted_at desc). "Most relevant"
+  // only means something when there's a search query — exact title
+  // matches first, then title-contains, then company matches, falling
+  // back to recency as a tiebreak. With no query it's identical to
+  // Newest, so the toggle is disabled in that state rather than
+  // pretending there's a ranking signal we don't have.
+  const sorted = useMemo(() => {
+    const arr = [...filtered]
+    if (sort === 'newest' || !q) {
+      return arr.sort((a, b) => b.posted_at.localeCompare(a.posted_at))
+    }
+    const ql = q.toLowerCase()
+    const score = (j: Job) => {
+      const title = j.title.toLowerCase()
+      if (title === ql) return 3
+      if (title.startsWith(ql)) return 2
+      if (title.includes(ql)) return 1
+      return 0
+    }
+    return arr.sort((a, b) => score(b) - score(a) || b.posted_at.localeCompare(a.posted_at))
+  }, [filtered, sort, q])
+
+  const paginated = sorted.slice(0, page * PAGE_SIZE)
+  const hasMore = paginated.length < sorted.length
 
   return (
     <div>
-      <div className="flex gap-3 flex-wrap items-center mb-6">
+      <div className="flex gap-3 flex-wrap items-center mb-4">
         <JobSearch value={q} onChange={setQ} />
         <JobFilters
           functions={functions}
           activeFn={activeFn}
-          onFnChange={(fn) => {
-            setPage(1)
-            setActiveFn(fn)
-          }}
+          onFnChange={(fn) => { setPage(1); setActiveFn(fn) }}
+          seniorities={seniorities}
+          activeSeniority={activeSeniority}
+          onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s) }}
           remoteOnly={remoteOnly}
-          onRemoteToggle={() => {
-            setPage(1)
-            setRemoteOnly((v) => !v)
-          }}
+          onRemoteToggle={() => { setPage(1); setRemoteOnly((v) => !v) }}
         />
-        <ViewToggle view={view} onChange={setView} />
       </div>
 
-      {!loading && !error && (
-        <div className="font-mono text-xs text-text-tertiary mb-4">
-          {filtered.length.toLocaleString()} role{filtered.length !== 1 ? 's' : ''} match
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        {!loading && !error && (
+          <div className="font-mono text-xs text-text-tertiary">
+            {sorted.length.toLocaleString()} role{sorted.length !== 1 ? 's' : ''} match
+          </div>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          <SortToggle sort={sort} onChange={setSort} disabled={!q} />
+          <ViewToggle view={view} onChange={setView} />
         </div>
-      )}
+      </div>
 
       {error && (
         <p className="text-red text-sm py-8">Couldn’t load jobs right now: {error}</p>
@@ -108,9 +139,9 @@ export default function JobList() {
         </div>
       )}
 
-      {!loading && !error && filtered.length === 0 && <EmptyState query={q} />}
+      {!loading && !error && sorted.length === 0 && <EmptyState query={q} />}
 
-      {!loading && !error && filtered.length > 0 && (
+      {!loading && !error && sorted.length > 0 && (
         <div
           className={
             view === 'grid'
@@ -127,7 +158,7 @@ export default function JobList() {
       {hasMore && !loading && (
         <div className="text-center mt-6">
           <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
-            Load {Math.min(PAGE_SIZE, filtered.length - paginated.length)} more
+            Load {Math.min(PAGE_SIZE, sorted.length - paginated.length)} more
           </Button>
         </div>
       )}
@@ -135,9 +166,23 @@ export default function JobList() {
   )
 }
 
+function SortToggle({ sort, onChange, disabled }: { sort: SortMode; onChange: (s: SortMode) => void; disabled: boolean }) {
+  return (
+    <button
+      onClick={() => onChange(sort === 'newest' ? 'relevant' : 'newest')}
+      disabled={disabled}
+      title={disabled ? 'Search for something to sort by relevance' : undefined}
+      className="flex items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-40 disabled:cursor-not-allowed border border-border-default rounded-md px-3 py-1.5 transition-colors"
+    >
+      <ArrowDownAZ size={13} aria-hidden="true" />
+      {sort === 'newest' ? 'Newest' : 'Most relevant'}
+    </button>
+  )
+}
+
 function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
   return (
-    <div className="flex items-center gap-1 bg-bg-surface border border-border-default rounded-md p-1 ml-auto">
+    <div className="flex items-center gap-1 bg-bg-surface border border-border-default rounded-md p-1">
       <button
         onClick={() => onChange('grid')}
         aria-label="Grid view"

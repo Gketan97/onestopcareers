@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { MapPin, Wifi, Building2 } from 'lucide-react'
 import type { Job } from '../../lib/jobs/types'
 import { postedLabel, recencyTier } from '../../lib/format'
+import { jobSlug } from '../../lib/jobs/slug'
 import Badge from '../ui/Badge'
 
 const recencyTone = { fresh: 'green', aging: 'amber', stale: 'gray' } as const
@@ -37,8 +38,8 @@ export default function JobCard({
   if (compact) {
     return (
       <div
-        onClick={() => navigate(`/jobs/${job.id}${query ? `?q=${encodeURIComponent(query)}` : ''}`)}
-        onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobs/${job.id}`)}
+        onClick={() => navigate(`/jobs/${jobSlug(job)}${query ? `?q=${encodeURIComponent(query)}` : ''}`)}
+        onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobs/${jobSlug(job)}`)}
         role="button"
         tabIndex={0}
         style={style}
@@ -73,8 +74,8 @@ export default function JobCard({
 
   return (
     <div
-      onClick={() => navigate(`/jobs/${job.id}${query ? `?q=${encodeURIComponent(query)}` : ''}`)}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobs/${job.id}`)}
+      onClick={() => navigate(`/jobs/${jobSlug(job)}${query ? `?q=${encodeURIComponent(query)}` : ''}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/jobs/${jobSlug(job)}`)}
       role="button"
       tabIndex={0}
       style={style}

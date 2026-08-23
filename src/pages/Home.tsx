@@ -162,7 +162,7 @@ export default function Home() {
             <div className="p-5 md:p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="font-mono text-[11px] text-text-tertiary">
-                  {analyticsCount === null ? 'Loading live data\u2026' : `${analyticsCount.toLocaleString()} analytics roles live right now`}
+                  {analyticsCount === null ? 'Loading live data…' : `${analyticsCount.toLocaleString()} analytics roles live right now`}
                 </span>
                 <span className="flex items-center gap-1.5 text-[11px] font-mono text-green">
                   <span className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" /> live

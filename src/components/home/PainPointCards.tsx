@@ -17,13 +17,13 @@ const cards: PainCard[] = [
   },
   {
     icon: HeartCrack,
-    headline: 'No one to ask when you\u2019re stuck?',
+    headline: 'No one to ask when you’re stuck?',
     solution: 'Learn, share, and grow with people navigating the same stage of their analytics career.',
     product: 'Career Circle',
   },
   {
     icon: Compass,
-    headline: 'A hundred roadmaps. A thousand videos. Still don\u2019t know what matters?',
+    headline: 'A hundred roadmaps. A thousand videos. Still don’t know what matters?',
     solution: 'Cut through the noise with practical resources, guidance, and real-world experiences that help you focus on what actually moves your career forward.',
     product: 'Resources + Projects + Career Guidance',
   },
