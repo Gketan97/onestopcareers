@@ -47,6 +47,17 @@ input:focus-visible,
   animation: slide-in 550ms var(--ease-out) both;
 }
 
+@keyframes travel-arrow {
+  0%   { left: 0%; opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+.animate-travel-arrow {
+  left: 0%;
+  animation: travel-arrow 3.5s linear infinite;
+}
+
 @keyframes fill-bar {
   from { width: 0%; }
   to   { width: 100%; }
@@ -67,6 +78,7 @@ input:focus-visible,
   .animate-blur-in { animation: none; }
   .animate-slide-in { animation: none; }
   .animate-fill-bar { animation: none; }
+  .animate-travel-arrow { animation: none; opacity: 0; }
   .animate-draw-line { animation: none; stroke-dashoffset: 0; }
   html { scroll-behavior: auto; }
 }
