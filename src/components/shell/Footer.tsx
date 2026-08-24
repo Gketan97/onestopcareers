@@ -15,7 +15,7 @@ export default function Footer() {
             <span className="font-display text-2xl tracking-tight leading-none">
               onestop<span className="text-accent">careers</span>
             </span>
-            <p className="text-text-secondary mt-3 max-w-xs">Build a better analytics career.</p>
+            <p className="text-text-secondary mt-3 max-w-xs">Fast-Track Your Analytics Career.</p>
           </div>
           <div className="flex gap-4">
             <SocialIcon icon={Linkedin} label="LinkedIn" />

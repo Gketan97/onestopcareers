@@ -21,9 +21,16 @@ export interface NavLink {
 // was the whole product; this repo already has Career Circle as a real,
 // separate differentiator, so Companies is added alongside everything
 // else rather than replacing it.
+// Updated 2026-08-23 again — "Home" added back (user request; the
+// wordmark linking home wasn't a sufficient substitute in practice) and
+// "Companies" removed as a standalone nav destination — it's now a
+// parallel feed inside the Jobs page instead (JobList.tsx), not a
+// separate place to navigate to. The /companies and /companies/:slug
+// routes still exist and still work (job cards and the new sidebar link
+// to them) — only the top-level nav promotion is gone.
 export const navLinks: NavLink[] = [
+  { label: 'Home', to: '/', enabled: true },
   { label: 'Jobs', to: '/jobs', enabled: true },
-  { label: 'Companies', to: '/companies', enabled: true },
   { label: 'Career Circle', to: '/career-circle', enabled: true },
   { label: 'Resources', to: '/resources', enabled: false },
   { label: 'Projects', to: '/projects', enabled: false },

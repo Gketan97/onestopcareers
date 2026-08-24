@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { SlidersHorizontal, ChevronDown, X } from 'lucide-react'
+import { SlidersHorizontal, ChevronDown, X, Plus } from 'lucide-react'
 import clsx from 'clsx'
 
 interface JobFiltersProps {
@@ -16,24 +16,55 @@ interface JobFiltersProps {
   onCityChange: (c: string | null) => void
 }
 
-// v3 (2026-08-23): switched from dropdown <select>s back to pills, but
-// kept the grouping — the original chip-wall problem was that every
-// filter across every category was shown as an undifferentiated flat
-// row, not that pills themselves were wrong. Pills toggle in one click
-// (a closed dropdown needs open-then-select); grouping under small
-// labels keeps that fast interaction without the "wall" feeling.
+// Function labels, friendlier than the raw crawler `fn` values. NOTE:
+// "Analytics" and "Data science" cannot be split into separate pills —
+// the crawler's detectFn() maps both "data scientist" and "data analyst"
+// titles to the same `fn: 'data'` category (see crawler.js), so a
+// separate "Data science" pill would just duplicate "Analytics" results
+// and confuse rather than help. Flagged directly rather than building a
+// pill that implies a distinction the data doesn't actually have.
+const FN_LABELS: Record<string, string> = {
+  data: 'Analytics',
+  product: 'Product',
+  engineering: 'Engineering',
+  bizops: 'Business',
+  finance: 'Finance',
+  design: 'Design',
+}
+// Curated core set shown by default — the four most requested/relevant
+// for this audience. The rest (finance, design) are one click away
+// behind "More", not hidden entirely.
+const CORE_FNS = ['data', 'product', 'engineering', 'bizops']
+
+// v4 (2026-08-23): Function pill row curated down from "all 6 raw
+// values, always shown" to a small default set + expandable "More" —
+// same progressive-disclosure principle as the City picker already
+// used, applied to the row that was actually getting crowded.
 export default function JobFilters(props: JobFiltersProps) {
   const [moreOpen, setMoreOpen] = useState(false)
+  const [fnExpanded, setFnExpanded] = useState(false)
   const hasActive = props.activeFn || props.activeSeniority || props.workMode || props.activeCity
+
+  const extraFns = props.functions.filter((fn) => !CORE_FNS.includes(fn))
+  const visibleFns = fnExpanded ? [...CORE_FNS.filter((fn) => props.functions.includes(fn)), ...extraFns] : CORE_FNS.filter((fn) => props.functions.includes(fn))
 
   return (
     <div className="flex flex-col gap-3">
       <FilterGroup label="Function">
-        {props.functions.map((fn) => (
+        {visibleFns.map((fn) => (
           <Pill key={fn} active={props.activeFn === fn} onClick={() => props.onFnChange(props.activeFn === fn ? null : fn)}>
-            {fn}
+            {FN_LABELS[fn] || fn}
           </Pill>
         ))}
+        {!fnExpanded && extraFns.length > 0 && (
+          <button
+            onClick={() => setFnExpanded(true)}
+            className="flex items-center gap-1 text-[13px] text-text-tertiary hover:text-text-primary px-2 py-2"
+          >
+            <Plus size={13} aria-hidden="true" />
+            More
+          </button>
+        )}
       </FilterGroup>
 
       <FilterGroup label="Level">

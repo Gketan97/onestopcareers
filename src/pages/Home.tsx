@@ -5,7 +5,6 @@ import Layout from '../components/shell/Layout'
 import Button from '../components/ui/Button'
 import Skeleton from '../components/ui/Skeleton'
 import JobCard from '../components/jobs/JobCard'
-import FragmentedJourney from '../components/home/FragmentedJourney'
 import PlatformPillars from '../components/home/PlatformPillars'
 import ProductFrame from '../components/home/ProductFrame'
 import CareerPathPreview from '../components/home/CareerPathPreview'
@@ -58,24 +57,6 @@ export default function Home() {
           <Link to="/jobs">
             <Button variant="secondary">Explore Opportunities</Button>
           </Link>
-        </div>
-      </section>
-
-      {/* ===================== 2. PROBLEM — why do I need it? ===================== */}
-      {/* No pain-point cards after this, on purpose — the brief flagged
-          that as restating this same section's promise a second time. */}
-      <section className="bg-bg-sunken px-6 md:px-12 py-20 md:py-24">
-        <div className="max-w-[1040px] mx-auto text-center">
-          <h2 className="font-display text-3xl md:text-4xl leading-tight mb-5">
-            Your analytics career is more than a job search.
-          </h2>
-          <p className="text-text-secondary max-w-xl mx-auto leading-relaxed mb-12">
-            Building an analytics career today means piecing together
-            courses, projects, job boards, communities, mentors, resume
-            tools, and AI tools &mdash; and figuring out what actually
-            matters along the way. We bring it together.
-          </p>
-          <FragmentedJourney />
         </div>
       </section>
 

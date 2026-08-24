@@ -167,6 +167,26 @@ The user proposed a structure inspired by a second competitor reference (a long-
 
 **Hero motion enhancement:** pain-point lines gained per-line icons (`Search`, `BookOpen`, `Youtube`, `Compass` — each matched to its specific question) and a new `blur-in` keyframe (opacity + `translateY` + `filter: blur()`, not just the existing plain `fade-in-up`) for the H1/sub/CTA — a visibly richer reveal than before, still fully passive, per the explicit "animated only, no user interaction" decision.
 
+### Nav restructure, Companies-as-feed, curated Jobs pills, mobile pass (2026-08-23)
+
+Five requested changes, all shipped:
+
+**1. "Home" added back to nav.** Was dropped in the v7 rebuild on the reasoning that the wordmark already links home; brought back by explicit request — in practice a separate nav item was still wanted alongside the wordmark link.
+
+**2. "Companies" removed from top-level nav, replaced by a parallel feed inside the Jobs page.** `JobList.tsx` now renders a two-column layout on desktop (`lg:grid-cols-[1fr_260px]`) — job results on the left, a "Companies hiring" sidebar on the right, derived from the exact same already-fetched job list via `deriveCompanies()` (no second fetch). Capped at 8 companies with a "See all companies" link to the full `/companies` page, which **still exists and still works** — only its nav promotion is gone, not the route itself (job cards and this new sidebar both link into it). On mobile, the sidebar drops below the job results rather than competing for horizontal space — DOM order was already main-content-first, confirmed rather than assumed.
+
+**3. Footer tagline updated** from "Build a better analytics career." (the superseded v7 hero's copy) to "Fast-Track Your Analytics Career." (the current, actual hero H1). A stale-copy bug essentially — the footer had been quietly contradicting whichever hero was actually live for at least one full rebuild cycle.
+
+**4. Mobile-specific pass**, concrete changes not just "doesn't break at small widths": `ProductFrame`'s browser-chrome traffic-light dots now hide below the `sm` breakpoint (saves horizontal room specifically for the label text, which also gained `truncate` so a long label like "onestopcareers.com/jobs" can't overflow on a narrow screen), header padding tightened (`px-3 py-2.5` vs `px-4 py-3` desktop), content padding tightened (`p-4` vs `p-5` desktop). Checked (not assumed) that the alternating two-column Home sections (Opportunities, Career Circle) already had text-before-visual DOM order regardless of their `lg:order-1`/`lg:order-2` desktop-only reordering — they did, no fix needed there, but worth having actually verified rather than guessed.
+
+**5. Jobs function-pill row curated down from 6 always-shown pills to 4 + expandable.** `CORE_FNS = ['data', 'product', 'engineering', 'bizops']` shown by default with friendly labels (Analytics / Product / Engineering / Business), a "+ More" toggle reveals the remaining two (Finance, Design) rather than hiding them entirely. `activeFn` now defaults to `'data'` (Analytics pre-selected) instead of `null` (all functions) — matches the site's actual analytics focus rather than defaulting to an unscoped view.
+
+**A real data limitation surfaced and flagged, not silently worked around:** the request's example pill set included "Data science" as a category separate from "Analytics." Checked `crawler.js`'s `detectFn()` before building anything — both "data scientist" and "data analyst" titles map to the *same* `fn: 'data'` bucket; there is no way to distinguish them with current data. Building a separate "Data science" pill would have produced identical results to "Analytics" while implying a real distinction that doesn't exist — declined to build it, used the 4 categories the data can actually support instead.
+
+### Problem section removed from homepage (2026-08-23)
+
+The user directly asked to remove the "Your analytics career is more than a job search." Problem section from `Home.tsx` — headline, copy, and the `FragmentedJourney` visual all cut. New section order: Hero → How It Works (Platform Pillars) → Show The Product → Proof → Final CTA. The hero's own copy ("Know what to learn, what to build, and what to do next") already implies the problem being solved, so going straight from hero into "how it works" reads as tighter rather than leaving a gap — consistent with the "don't repeat the same promise" discipline this whole rebuild has been following. `FragmentedJourney.tsx` marked orphaned, left in the repo per standing practice.
+
 ### Missing favicon and robots.txt found via the sync script's honesty fix (2026-08-23)
 
 The sync script's "Synced:" reporting fix (from the earlier scripting-bug saga) paid for itself immediately: the very next real run reported `! Not found in zip, skipped: public` — the first honest signal, ever, that `public/` didn't exist in the delivered build. Checked and confirmed: it genuinely never existed. This is the same favicon gap flagged all the way back in the very first platform audit (`PLATFORM_AUDIT.md`) and never actually closed across dozens of milestones since.

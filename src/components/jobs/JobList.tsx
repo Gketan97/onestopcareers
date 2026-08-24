@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { LayoutGrid, List as ListIcon, ArrowDownAZ } from 'lucide-react'
 import { fetchJobs } from '../../lib/jobs/fetchJobs'
 import type { Job } from '../../lib/jobs/types'
+import { deriveCompanies } from '../../lib/jobs/companies'
+import CompanyAvatar from './CompanyAvatar'
 import JobCard from './JobCard'
 import JobSearch from './JobSearch'
 import JobFilters from './JobFilters'
@@ -20,7 +22,11 @@ export default function JobList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
-  const [activeFn, setActiveFn] = useState<string | null>(null)
+  // Pre-selected to 'data' (Analytics) per request — this is an
+  // analytics-focused platform, defaulting to that scope rather than
+  // "all functions" matches what most visitors actually want to see
+  // first. Still one click away from clearing to see everything.
+  const [activeFn, setActiveFn] = useState<string | null>('data')
   const [activeSeniority, setActiveSeniority] = useState<string | null>(null)
   const [workMode, setWorkMode] = useState<string | null>(null)
   const [activeCity, setActiveCity] = useState<string | null>(null)
@@ -105,71 +111,110 @@ export default function JobList() {
   const paginated = sorted.slice(0, page * PAGE_SIZE)
   const hasMore = paginated.length < sorted.length
 
-  return (
-    <div>
-      <div className="flex gap-3 flex-wrap items-center mb-4">
-        <JobSearch value={q} onChange={setQ} />
-        <JobFilters
-          functions={functions}
-          activeFn={activeFn}
-          onFnChange={(fn) => { setPage(1); setActiveFn(fn) }}
-          seniorities={seniorities}
-          activeSeniority={activeSeniority}
-          onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s) }}
-          workMode={workMode}
-          onWorkModeChange={(m) => { setPage(1); setWorkMode(m) }}
-          cities={cities}
-          activeCity={activeCity}
-          onCityChange={(c) => { setPage(1); setActiveCity(c) }}
-        />
-      </div>
+  // Parallel companies feed, replacing the standalone /companies nav
+  // destination — derived from the same already-fetched job list, no
+  // extra fetch. Capped at 8 so it doesn't overwhelm the sidebar; the
+  // full list is still one click away via "See all companies".
+  const topCompanies = useMemo(() => deriveCompanies(jobs).slice(0, 8), [jobs])
 
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        {!loading && !error && (
-          <div className="font-mono text-xs text-text-tertiary">
-            {sorted.length.toLocaleString()} role{sorted.length !== 1 ? 's' : ''} match
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8 items-start">
+      {/* Main content first in DOM order on purpose — on mobile
+          (grid-cols-1) this means jobs appear before the companies
+          feed, matching what most visitors came here for. */}
+      <div className="min-w-0">
+        <div className="flex gap-3 flex-wrap items-center mb-4">
+          <JobSearch value={q} onChange={setQ} />
+          <JobFilters
+            functions={functions}
+            activeFn={activeFn}
+            onFnChange={(fn) => { setPage(1); setActiveFn(fn) }}
+            seniorities={seniorities}
+            activeSeniority={activeSeniority}
+            onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s) }}
+            workMode={workMode}
+            onWorkModeChange={(m) => { setPage(1); setWorkMode(m) }}
+            cities={cities}
+            activeCity={activeCity}
+            onCityChange={(c) => { setPage(1); setActiveCity(c) }}
+          />
+        </div>
+
+        <div className="flex items-center gap-3 mb-6 flex-wrap">
+          {!loading && !error && (
+            <div className="font-mono text-xs text-text-tertiary">
+              {sorted.length.toLocaleString()} role{sorted.length !== 1 ? 's' : ''} match
+            </div>
+          )}
+          <div className="flex items-center gap-2 ml-auto">
+            <SortToggle sort={sort} onChange={setSort} disabled={!q} />
+            <ViewToggle view={view} onChange={setView} />
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-red text-sm py-8">Couldn’t load jobs right now: {error}</p>
+        )}
+
+        {loading && (
+          <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3' : 'flex flex-col gap-3'}>
+            {[...Array(9)].map((_, i) => (
+              <Skeleton key={i} className={view === 'grid' ? 'h-[132px]' : 'h-[92px]'} />
+            ))}
           </div>
         )}
-        <div className="flex items-center gap-2 ml-auto">
-          <SortToggle sort={sort} onChange={setSort} disabled={!q} />
-          <ViewToggle view={view} onChange={setView} />
-        </div>
+
+        {!loading && !error && sorted.length === 0 && <EmptyState query={q} />}
+
+        {!loading && !error && sorted.length > 0 && (
+          <div
+            className={
+              view === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'
+                : 'flex flex-col gap-3'
+            }
+          >
+            {paginated.map((job, i) => (
+              <JobCard key={job.id} job={job} query={q} compact={view === 'grid'} index={i} />
+            ))}
+          </div>
+        )}
+
+        {hasMore && !loading && (
+          <div className="text-center mt-6">
+            <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
+              Load {Math.min(PAGE_SIZE, sorted.length - paginated.length)} more
+            </Button>
+          </div>
+        )}
       </div>
 
-      {error && (
-        <p className="text-red text-sm py-8">Couldn’t load jobs right now: {error}</p>
-      )}
-
-      {loading && (
-        <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3' : 'flex flex-col gap-3'}>
-          {[...Array(9)].map((_, i) => (
-            <Skeleton key={i} className={view === 'grid' ? 'h-[132px]' : 'h-[92px]'} />
-          ))}
-        </div>
-      )}
-
-      {!loading && !error && sorted.length === 0 && <EmptyState query={q} />}
-
-      {!loading && !error && sorted.length > 0 && (
-        <div
-          className={
-            view === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'
-              : 'flex flex-col gap-3'
-          }
-        >
-          {paginated.map((job, i) => (
-            <JobCard key={job.id} job={job} query={q} compact={view === 'grid'} index={i} />
-          ))}
-        </div>
-      )}
-
-      {hasMore && !loading && (
-        <div className="text-center mt-6">
-          <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
-            Load {Math.min(PAGE_SIZE, sorted.length - paginated.length)} more
-          </Button>
-        </div>
+      {/* Companies feed — real data, derived, not a separate fetch.
+          Replaces the standalone Companies nav destination. */}
+      {!loading && !error && topCompanies.length > 0 && (
+        <aside className="lg:sticky lg:top-8">
+          <div className="font-mono text-[11px] uppercase tracking-wide text-text-tertiary mb-3">
+            Companies hiring
+          </div>
+          <div className="flex flex-col gap-2">
+            {topCompanies.map((c) => (
+              <Link
+                key={c.slug}
+                to={`/companies/${c.slug}`}
+                className="flex items-center gap-2.5 bg-bg-surface border border-border-subtle rounded-md px-3 py-2.5 transition-colors hover:border-border-default"
+              >
+                <CompanyAvatar name={c.name} color={c.color} size={28} />
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-text-primary truncate">{c.name}</div>
+                  <div className="font-mono text-[10px] text-text-tertiary">{c.totalRoles} role{c.totalRoles !== 1 ? 's' : ''}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <Link to="/companies" className="block text-center text-[13px] text-accent hover:underline mt-3">
+            See all companies →
+          </Link>
+        </aside>
       )}
     </div>
   )

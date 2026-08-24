@@ -1,3 +1,7 @@
+// STATUS: unused as of 2026-08-23 — the user removed the entire Problem
+// section from Home.tsx that this component lived in ("Your analytics
+// career is more than a job search."). Left in the repo, not deleted,
+// per standing practice.
 import { Youtube, Linkedin, MessageCircle, Users2, FileText, Sparkles } from 'lucide-react'
 
 const scattered = [
