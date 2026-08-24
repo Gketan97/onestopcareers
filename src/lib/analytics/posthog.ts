@@ -9,6 +9,17 @@ export function initAnalytics() {
   if (!key || initialized) return
   posthog.init(key, {
     api_host: host,
+    // `defaults` pins PostHog's own baseline config to the version their
+    // dashboard generated for this specific project (2026-08-24) — keeps
+    // this project's behavior stable even if PostHog changes their
+    // overall recommended defaults later. `person_profiles:
+    // 'identified_only'` matches the dashboard's own snippet too: no
+    // profile is created for anonymous browsing, only once someone
+    // actually signs in (via identifyUser() below) — fewer profiles
+    // billed, and matches "mostly anonymous browsing" being the norm
+    // here, not the exception.
+    defaults: '2026-05-30',
+    person_profiles: 'identified_only',
     // Sensible defaults for a mostly-anonymous-browsing product: capture
     // pageviews automatically, but don't autocapture every click/input —
     // this project tracks a small, deliberate event set (below), not
