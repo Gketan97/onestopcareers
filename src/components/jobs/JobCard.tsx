@@ -7,6 +7,7 @@ import { jobSlug } from '../../lib/jobs/slug'
 import { companySlug } from '../../lib/jobs/companies'
 import { fnLabel } from '../../lib/jobs/functionLabels'
 import CompanyLogo from './CompanyLogo'
+import SaveButton from './SaveButton'
 
 const ModeIcon = ({ mode, size }: { mode: string; size: number }) =>
   mode === 'remote' ? <Wifi size={size} aria-hidden="true" /> : <Building2 size={size} aria-hidden="true" />
@@ -50,15 +51,18 @@ export default function JobCard({
         style={style}
         className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md p-3.5 flex flex-col gap-2.5 cursor-pointer transition-all hover:border-accent-border hover:-translate-y-px hover:shadow-lg h-full"
       >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <CompanyLogo name={job.company} color={color} size={26} />
-          <Link
-            to={`/companies/${companySlug(job.company)}`}
-            onClick={stopAndGoToCompany}
-            className="text-[13px] font-medium text-text-primary hover:text-accent truncate"
-          >
-            {job.company}
-          </Link>
+        <div className="flex items-center gap-2.5 min-w-0 justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <CompanyLogo name={job.company} color={color} size={26} />
+            <Link
+              to={`/companies/${companySlug(job.company)}`}
+              onClick={stopAndGoToCompany}
+              className="text-[13px] font-medium text-text-primary hover:text-accent truncate"
+            >
+              {job.company}
+            </Link>
+          </div>
+          <SaveButton jobId={job.id} company={job.company} fn={job.fn} seniority={job.seniority} size={15} />
         </div>
         <div className="text-sm font-semibold leading-snug line-clamp-2">{job.title}</div>
         <div className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10.5px] text-text-tertiary items-center">
@@ -120,7 +124,10 @@ export default function JobCard({
         </div>
       </div>
 
-      <span className="font-mono text-[11px] text-text-tertiary flex-shrink-0">{postedLabel(job.posted_at)}</span>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <span className="font-mono text-[11px] text-text-tertiary">{postedLabel(job.posted_at)}</span>
+        <SaveButton jobId={job.id} company={job.company} fn={job.fn} seniority={job.seniority} />
+      </div>
     </div>
   )
 }

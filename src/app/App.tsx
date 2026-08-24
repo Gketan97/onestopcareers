@@ -5,6 +5,9 @@ import JobDetail from '../pages/JobDetail'
 import Companies from '../pages/Companies'
 import CompanyProfile from '../pages/CompanyProfile'
 import CareerCircle from '../pages/CareerCircle'
+import CareerCircleJoin from '../pages/CareerCircleJoin'
+import Login from '../pages/Login'
+import Saved from '../pages/Saved'
 // import AdminJobs from '../pages/AdminJobs'   // Phase 4
 
 export default function App() {
@@ -17,6 +20,9 @@ export default function App() {
         <Route path="/companies" element={<Companies />} />
         <Route path="/companies/:slug" element={<CompanyProfile />} />
         <Route path="/career-circle" element={<CareerCircle />} />
+        <Route path="/career-circle/join" element={<CareerCircleJoin />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/saved" element={<Saved />} />
 
         {/* Reserved — see docs/DESIGN_DOC.md §4 for the full route map.
             Uncomment as each phase ships; do not add ad-hoc routes elsewhere.

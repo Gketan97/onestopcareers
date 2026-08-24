@@ -9,11 +9,13 @@ import Badge from '../components/ui/Badge'
 import Skeleton from '../components/ui/Skeleton'
 import JobCard from '../components/jobs/JobCard'
 import JobPostingSchema from '../components/jobs/JobPostingSchema'
+import SaveButton from '../components/jobs/SaveButton'
 import { fetchJobs } from '../lib/jobs/fetchJobs'
 import { fetchJobDescription, type JobDescriptionResult } from '../lib/jobs/fetchJobDescription'
 import { jobSlug, idFromSlug } from '../lib/jobs/slug'
 import type { Job } from '../lib/jobs/types'
 import { postedLabel } from '../lib/format'
+import { analytics } from '../lib/analytics/posthog'
 
 // Rebuilt 2026-08-23 per the Jobs roadmap brief (Phase 3/4). Real fields
 // only — no fabricated "Responsibilities/Requirements" sections, since
@@ -45,6 +47,7 @@ export default function JobDetail() {
     if (!job) return
     setDesc(null)
     fetchJobDescription(job).then(setDesc)
+    analytics.jobViewed({ job_id: job.id, company: job.company, function: job.fn, level: job.seniority })
   }, [job])
 
   // Client-side title/meta — real value for Google (renders JS before
@@ -142,12 +145,20 @@ export default function JobDetail() {
                 Posted {postedLabel(job.posted_at)} · via {job.src}
               </p>
 
-              <a href={job.url} target="_blank" rel="noopener noreferrer">
-                <Button className="mt-8 group">
-                  Apply on {job.company}
-                  <ExternalLink size={15} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-                </Button>
-              </a>
+              <div className="flex items-center gap-3 mt-8">
+                <a
+                  href={job.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => analytics.jobApplyClicked({ job_id: job.id, company: job.company, function: job.fn, level: job.seniority })}
+                >
+                  <Button className="group">
+                    Apply on {job.company}
+                    <ExternalLink size={15} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </Button>
+                </a>
+                <SaveButton jobId={job.id} company={job.company} fn={job.fn} seniority={job.seniority} size={20} />
+              </div>
 
               {/* About the role — real fetched content where available,
                   honest fallback everywhere else. Never fabricated. */}

@@ -8,6 +8,7 @@ import { fetchJobs } from '../lib/jobs/fetchJobs'
 import { deriveCompanies, type CompanyAggregate } from '../lib/jobs/companies'
 import { fnLabel } from '../lib/jobs/functionLabels'
 import type { Job } from '../lib/jobs/types'
+import { analytics } from '../lib/analytics/posthog'
 
 // v2 (2026-08-23): a real discovery page, not the Jobs sidebar moved
 // elsewhere — gained search and a function filter, real logos (via
@@ -41,6 +42,16 @@ export default function Companies() {
     if (activeFn) result = result.filter((c) => c.byFunction[activeFn] > 0)
     return result
   }, [allCompanies, q, activeFn])
+
+  // Debounced, same reasoning as the Jobs search tracking — avoid
+  // flooding analytics with a partial-query event per keystroke.
+  useEffect(() => {
+    if (!q || companies === null) return
+    const t = setTimeout(() => {
+      analytics.companiesSearch({ result_count: companies.length, has_query: true })
+    }, 600)
+    return () => clearTimeout(t)
+  }, [q, companies])
 
   return (
     <Layout>

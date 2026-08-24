@@ -1,4 +1,5 @@
-import type { ElementType } from 'react'
+import { useEffect, type ElementType } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Briefcase, Handshake, MessagesSquare, BookOpen, HelpCircle, TrendingUp,
   Target, ShieldCheck, MessageCircle, CircleCheck, Users2, UserCircle,
@@ -8,14 +9,18 @@ import Layout from '../components/shell/Layout'
 import Button from '../components/ui/Button'
 import CareerCircleMockup from '../components/home/CareerCircleMockup'
 import FAQAccordion, { type FAQItem } from '../components/home/FAQAccordion'
+import { analytics } from '../lib/analytics/posthog'
+import { supabase } from '../lib/supabase/client'
 
 // Full rebuild, 2026-08-23, from a dedicated 10-section Career Circle
 // brief the user provided directly (same pattern as the homepage
 // rebuild). Supersedes the previous pain-point-led version of this page
-// entirely — kept in design doc history, not this file. CTAs remain
-// "coming soon" throughout: the group itself isn't live yet (no real
-// invite link exists), same honesty standard as every other unbuilt CTA
-// on the site.
+// entirely — kept in design doc history, not this file.
+//
+// Updated again 2026-08-23 (backend phase): both "Join a Career Circle"
+// CTAs are now real, routing to /career-circle/join — a real interest
+// form, backed by Supabase, exists now. Previously these were
+// permanently inert ("coming soon") since no form existed at all.
 
 const insideCards: { icon: ElementType; title: string; desc: string }[] = [
   { icon: Briefcase, title: 'Share Opportunities', desc: 'Jobs and openings worth knowing about.' },
@@ -59,6 +64,18 @@ const faqItems: FAQItem[] = [
 ]
 
 export default function CareerCircle() {
+  useEffect(() => {
+    if (!supabase) return
+    supabase
+      .from('career_circles')
+      .select('id, slug')
+      .eq('slug', 'analytics')
+      .single()
+      .then(({ data }) => {
+        if (data) analytics.careerCircleViewed({ circle_id: data.id, circle_slug: data.slug })
+      })
+  }, [])
+
   return (
     <Layout>
       {/* ===================== 1. HERO ===================== */}
@@ -72,10 +89,12 @@ export default function CareerCircle() {
           interview experiences, and career advice.
         </p>
         <div className="flex flex-wrap gap-3.5 mt-9 items-center justify-center animate-blur-in" style={{ animationDelay: '150ms' }}>
-          <Button className="group" title="Coming soon — group link not live yet">
-            Join a Career Circle
-            <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-          </Button>
+          <Link to="/career-circle/join">
+            <Button className="group">
+              Join a Career Circle
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </Button>
+          </Link>
           <a href="#how-it-works">
             <Button variant="secondary">See How It Works</Button>
           </a>
@@ -203,10 +222,12 @@ export default function CareerCircle() {
           Your career is easier when you don’t build it alone.
         </h2>
         <div className="mt-9">
-          <Button className="group" title="Coming soon — group link not live yet">
-            Join a Career Circle
-            <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-          </Button>
+          <Link to="/career-circle/join">
+            <Button className="group">
+              Join a Career Circle
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+            </Button>
+          </Link>
         </div>
       </section>
     </Layout>

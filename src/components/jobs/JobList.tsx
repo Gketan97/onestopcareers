@@ -12,6 +12,7 @@ import JobFilters, { type PostedFilter } from './JobFilters'
 import EmptyState from './EmptyState'
 import Skeleton from '../ui/Skeleton'
 import Button from '../ui/Button'
+import { analytics } from '../../lib/analytics/posthog'
 
 const PAGE_SIZE = 24
 const DISCOVERY_AFTER = 8 // insert the companies module after this many results
@@ -109,6 +110,17 @@ export default function JobList() {
   }, [filtered, sort, q])
 
   const paginated = sorted.slice(0, page * PAGE_SIZE)
+
+  // Debounced — JobSearch fires onChange on every keystroke (by design,
+  // for instant filtering), but tracking on every keystroke would flood
+  // PostHog with partial-query noise. Waits 600ms after typing stops.
+  useEffect(() => {
+    if (!q) return
+    const t = setTimeout(() => {
+      analytics.jobSearch({ result_count: sorted.length, has_query: true })
+    }, 600)
+    return () => clearTimeout(t)
+  }, [q, sorted.length])
   const hasMore = paginated.length < sorted.length
 
   // Contextual to the CURRENT filtered set, not the global job list —
@@ -138,17 +150,17 @@ export default function JobList() {
       <JobFilters
         functions={functions}
         activeFn={activeFn}
-        onFnChange={(fn) => { setPage(1); setActiveFn(fn) }}
+        onFnChange={(fn) => { setPage(1); setActiveFn(fn); if (fn) analytics.jobFilterApplied({ filter_type: 'function', filter_value: fn }) }}
         seniorities={seniorities}
         activeSeniority={activeSeniority}
-        onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s) }}
+        onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s); if (s) analytics.jobFilterApplied({ filter_type: 'level', filter_value: s }) }}
         workMode={workMode}
-        onWorkModeChange={(m) => { setPage(1); setWorkMode(m) }}
+        onWorkModeChange={(m) => { setPage(1); setWorkMode(m); if (m) analytics.jobFilterApplied({ filter_type: 'work_mode', filter_value: m }) }}
         cities={cities}
         activeCity={activeCity}
-        onCityChange={(c) => { setPage(1); setActiveCity(c) }}
+        onCityChange={(c) => { setPage(1); setActiveCity(c); if (c) analytics.jobFilterApplied({ filter_type: 'location', filter_value: c }) }}
         postedFilter={postedFilter}
-        onPostedFilterChange={(p) => { setPage(1); setPostedFilter(p) }}
+        onPostedFilterChange={(p) => { setPage(1); setPostedFilter(p); if (p) analytics.jobFilterApplied({ filter_type: 'posted', filter_value: p }) }}
       />
 
       <div className="flex items-center gap-3 my-6 flex-wrap">

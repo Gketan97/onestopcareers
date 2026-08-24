@@ -8,6 +8,7 @@ import JobCard from '../components/jobs/JobCard'
 import { fetchJobs } from '../lib/jobs/fetchJobs'
 import { deriveCompanies, type CompanyAggregate } from '../lib/jobs/companies'
 import type { Job } from '../lib/jobs/types'
+import { analytics } from '../lib/analytics/posthog'
 
 export default function CompanyProfile() {
   const { slug } = useParams()
@@ -16,6 +17,13 @@ export default function CompanyProfile() {
   useEffect(() => {
     fetchJobs().then(setJobs).catch(() => setJobs([]))
   }, [])
+
+  const company: CompanyAggregate | undefined = jobs ? deriveCompanies(jobs).find((c) => c.slug === slug) : undefined
+
+  useEffect(() => {
+    if (company) analytics.companyViewed({ company: company.name, role_count: company.totalRoles })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company?.slug])
 
   if (jobs === null) {
     return (
@@ -27,8 +35,6 @@ export default function CompanyProfile() {
       </Layout>
     )
   }
-
-  const company: CompanyAggregate | undefined = deriveCompanies(jobs).find((c) => c.slug === slug)
 
   if (!company) {
     return <Navigate to="/companies" replace />

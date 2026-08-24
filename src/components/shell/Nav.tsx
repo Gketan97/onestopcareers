@@ -1,17 +1,27 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, X, Bookmark, LogOut } from 'lucide-react'
 import clsx from 'clsx'
 import { navLinks } from './navConfig'
+import { useAuth } from '../../lib/auth/AuthContext'
 
-// Updated 2026-08-23: "Log in" and "Start Building" added per the new
-// homepage strategy brief. "Log in" is inert (title="Coming soon") — no
-// accounts/auth exist yet, an honest placeholder rather than a dead
-// destination. "Start Building" is real, pointing at /jobs — the one
-// concrete, live "start" experience the platform actually has right now.
+// Updated 2026-08-23 again — "Log in" is now real (was an inert
+// placeholder since no auth existed). Signed-out: "Log in" link.
+// Signed-in: "Saved" link + a logout button. `available` (whether
+// Supabase is actually configured) still gates all of this — if it's
+// not, the nav quietly falls back to the old inert-placeholder look
+// rather than showing a login link that can never work.
 export default function Nav() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const { user, available, signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    setOpen(false)
+    navigate('/')
+  }
 
   return (
     <nav className="border-b border-border-subtle bg-bg-surface relative">
@@ -27,12 +37,43 @@ export default function Nav() {
         </div>
 
         <div className="flex items-center gap-4">
-          <span
-            className="text-sm font-medium text-text-tertiary opacity-40 cursor-default hidden sm:inline-block"
-            title="Coming soon"
-          >
-            Log in
-          </span>
+          {available && user ? (
+            <>
+              <Link
+                to="/saved"
+                onClick={() => setOpen(false)}
+                className={clsx(
+                  'hidden sm:flex items-center gap-1.5 text-sm font-medium transition-colors',
+                  location.pathname === '/saved' ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary',
+                )}
+              >
+                <Bookmark size={15} aria-hidden="true" />
+                Saved
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="hidden sm:flex items-center gap-1.5 text-sm text-text-tertiary hover:text-text-primary transition-colors"
+              >
+                <LogOut size={15} aria-hidden="true" />
+                Log out
+              </button>
+            </>
+          ) : available ? (
+            <Link
+              to="/login"
+              onClick={() => setOpen(false)}
+              className="hidden sm:inline-block text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+            >
+              Log in
+            </Link>
+          ) : (
+            <span
+              className="text-sm font-medium text-text-tertiary opacity-40 cursor-default hidden sm:inline-block"
+              title="Coming soon"
+            >
+              Log in
+            </span>
+          )}
           <Link
             to="/jobs"
             onClick={() => setOpen(false)}
@@ -56,7 +97,24 @@ export default function Nav() {
           {navLinks.map((link) => (
             <NavItem key={link.to} link={link} current={location.pathname} onClick={() => setOpen(false)} block />
           ))}
-          <span className="text-sm font-medium text-text-tertiary opacity-40" title="Coming soon">Log in</span>
+          {available && user ? (
+            <>
+              <Link to="/saved" onClick={() => setOpen(false)} className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
+                <Bookmark size={15} aria-hidden="true" />
+                Saved
+              </Link>
+              <button onClick={handleSignOut} className="flex items-center gap-1.5 text-sm text-text-tertiary text-left">
+                <LogOut size={15} aria-hidden="true" />
+                Log out
+              </button>
+            </>
+          ) : available ? (
+            <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-medium text-text-secondary">
+              Log in
+            </Link>
+          ) : (
+            <span className="text-sm font-medium text-text-tertiary opacity-40" title="Coming soon">Log in</span>
+          )}
           <Link
             to="/jobs"
             onClick={() => setOpen(false)}
