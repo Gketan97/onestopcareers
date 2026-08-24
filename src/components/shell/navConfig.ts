@@ -28,9 +28,18 @@ export interface NavLink {
 // separate place to navigate to. The /companies and /companies/:slug
 // routes still exist and still work (job cards and the new sidebar link
 // to them) — only the top-level nav promotion is gone.
+// Updated 2026-08-23 (third time today) — Companies is back as a
+// standalone, equal top-level nav item. Reverses the milestone-27
+// decision to fold it into a Jobs-page sidebar — that was explicitly
+// re-evaluated and overridden: Companies is meant to be "a separate,
+// first-class destination," not a feature bolted onto Jobs. The former
+// sidebar is replaced by a contextual inline discovery module within the
+// Jobs feed instead (see JobList.tsx) — present, but not competing with
+// Companies' status as its own real page.
 export const navLinks: NavLink[] = [
   { label: 'Home', to: '/', enabled: true },
   { label: 'Jobs', to: '/jobs', enabled: true },
+  { label: 'Companies', to: '/companies', enabled: true },
   { label: 'Career Circle', to: '/career-circle', enabled: true },
   { label: 'Resources', to: '/resources', enabled: false },
   { label: 'Projects', to: '/projects', enabled: false },

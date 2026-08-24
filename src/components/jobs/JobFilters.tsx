@@ -1,6 +1,9 @@
-import { useState, type ReactNode } from 'react'
-import { SlidersHorizontal, ChevronDown, X, Plus } from 'lucide-react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { ChevronDown, X } from 'lucide-react'
 import clsx from 'clsx'
+import { fnLabel } from '../../lib/jobs/functionLabels'
+
+export type PostedFilter = 'today' | 'week' | 'month' | null
 
 interface JobFiltersProps {
   functions: string[]
@@ -14,150 +17,205 @@ interface JobFiltersProps {
   cities: string[]
   activeCity: string | null
   onCityChange: (c: string | null) => void
+  postedFilter: PostedFilter
+  onPostedFilterChange: (p: PostedFilter) => void
 }
 
-// Function labels, friendlier than the raw crawler `fn` values. NOTE:
-// "Analytics" and "Data science" cannot be split into separate pills —
-// the crawler's detectFn() maps both "data scientist" and "data analyst"
-// titles to the same `fn: 'data'` category (see crawler.js), so a
-// separate "Data science" pill would just duplicate "Analytics" results
-// and confuse rather than help. Flagged directly rather than building a
-// pill that implies a distinction the data doesn't actually have.
-const FN_LABELS: Record<string, string> = {
-  data: 'Analytics',
-  product: 'Product',
-  engineering: 'Engineering',
-  bizops: 'Business',
-  finance: 'Finance',
-  design: 'Design',
+const POSTED_LABELS: Record<NonNullable<PostedFilter>, string> = {
+  today: 'Today',
+  week: 'This week',
+  month: 'This month',
 }
-// Curated core set shown by default — the four most requested/relevant
-// for this audience. The rest (finance, design) are one click away
-// behind "More", not hidden entirely.
-const CORE_FNS = ['data', 'product', 'engineering', 'bizops']
 
-// v4 (2026-08-23): Function pill row curated down from "all 6 raw
-// values, always shown" to a small default set + expandable "More" —
-// same progressive-disclosure principle as the City picker already
-// used, applied to the row that was actually getting crowded.
+// v5 (2026-08-23): rebuilt from persistent pills to closed popover
+// triggers + a separate active-filter-chips row, per explicit request.
+// Every option (all 6 functions, not a curated 4) is now inside its
+// popover rather than always visible — since nothing is shown until a
+// trigger is clicked, the earlier "too many pills" problem doesn't apply
+// to this shape at all, so no curation/expansion is needed here anymore.
+// "More" holds a real filter (posted date), not a placeholder — no other
+// filterable dimension existed in the data to put there instead.
 export default function JobFilters(props: JobFiltersProps) {
-  const [moreOpen, setMoreOpen] = useState(false)
-  const [fnExpanded, setFnExpanded] = useState(false)
-  const hasActive = props.activeFn || props.activeSeniority || props.workMode || props.activeCity
+  const [open, setOpen] = useState<string | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
 
-  const extraFns = props.functions.filter((fn) => !CORE_FNS.includes(fn))
-  const visibleFns = fnExpanded ? [...CORE_FNS.filter((fn) => props.functions.includes(fn)), ...extraFns] : CORE_FNS.filter((fn) => props.functions.includes(fn))
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(null)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
+  const chips: { label: string; onRemove: () => void }[] = []
+  if (props.activeFn) chips.push({ label: fnLabel(props.activeFn), onRemove: () => props.onFnChange(null) })
+  if (props.activeSeniority) chips.push({ label: props.activeSeniority, onRemove: () => props.onSeniorityChange(null) })
+  if (props.workMode) chips.push({ label: props.workMode, onRemove: () => props.onWorkModeChange(null) })
+  if (props.activeCity) chips.push({ label: props.activeCity, onRemove: () => props.onCityChange(null) })
+  if (props.postedFilter) chips.push({ label: POSTED_LABELS[props.postedFilter], onRemove: () => props.onPostedFilterChange(null) })
 
   return (
-    <div className="flex flex-col gap-3">
-      <FilterGroup label="Function">
-        {visibleFns.map((fn) => (
-          <Pill key={fn} active={props.activeFn === fn} onClick={() => props.onFnChange(props.activeFn === fn ? null : fn)}>
-            {FN_LABELS[fn] || fn}
-          </Pill>
-        ))}
-        {!fnExpanded && extraFns.length > 0 && (
-          <button
-            onClick={() => setFnExpanded(true)}
-            className="flex items-center gap-1 text-[13px] text-text-tertiary hover:text-text-primary px-2 py-2"
-          >
-            <Plus size={13} aria-hidden="true" />
-            More
-          </button>
-        )}
-      </FilterGroup>
+    <div ref={ref}>
+      <div className="flex flex-wrap items-center gap-2">
+        <Trigger
+          label="Function"
+          value={props.activeFn ? fnLabel(props.activeFn) : null}
+          isOpen={open === 'fn'}
+          onToggle={() => setOpen(open === 'fn' ? null : 'fn')}
+        >
+          <Option selected={!props.activeFn} onClick={() => { props.onFnChange(null); setOpen(null) }}>All functions</Option>
+          {props.functions.map((fn) => (
+            <Option key={fn} selected={props.activeFn === fn} onClick={() => { props.onFnChange(fn); setOpen(null) }}>
+              {fnLabel(fn)}
+            </Option>
+          ))}
+        </Trigger>
 
-      <FilterGroup label="Level">
-        {props.seniorities.map((s) => (
-          <Pill key={s} active={props.activeSeniority === s} onClick={() => props.onSeniorityChange(props.activeSeniority === s ? null : s)}>
-            {s}
-          </Pill>
-        ))}
-      </FilterGroup>
+        <Trigger
+          label="Level"
+          value={props.activeSeniority}
+          isOpen={open === 'level'}
+          onToggle={() => setOpen(open === 'level' ? null : 'level')}
+        >
+          <Option selected={!props.activeSeniority} onClick={() => { props.onSeniorityChange(null); setOpen(null) }}>All levels</Option>
+          {props.seniorities.map((s) => (
+            <Option key={s} selected={props.activeSeniority === s} onClick={() => { props.onSeniorityChange(s); setOpen(null) }} capitalize>
+              {s}
+            </Option>
+          ))}
+        </Trigger>
 
-      <FilterGroup label="Work mode">
-        {['remote', 'hybrid', 'onsite'].map((m) => (
-          <Pill key={m} active={props.workMode === m} onClick={() => props.onWorkModeChange(props.workMode === m ? null : m)}>
-            {m}
-          </Pill>
-        ))}
+        <Trigger
+          label="Work mode"
+          value={props.workMode}
+          isOpen={open === 'mode'}
+          onToggle={() => setOpen(open === 'mode' ? null : 'mode')}
+        >
+          <Option selected={!props.workMode} onClick={() => { props.onWorkModeChange(null); setOpen(null) }}>Any</Option>
+          {['remote', 'hybrid', 'onsite'].map((m) => (
+            <Option key={m} selected={props.workMode === m} onClick={() => { props.onWorkModeChange(m); setOpen(null) }} capitalize>
+              {m}
+            </Option>
+          ))}
+        </Trigger>
 
-        <div className="relative">
-          <button
-            onClick={() => setMoreOpen((v) => !v)}
-            aria-expanded={moreOpen}
-            className={clsx(
-              'flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] font-medium border whitespace-nowrap transition-colors',
-              props.activeCity || moreOpen
-                ? 'bg-accent-soft border-accent-border text-accent'
-                : 'bg-bg-surface border-border-default text-text-secondary hover:border-text-tertiary',
-            )}
-          >
-            <SlidersHorizontal size={12} aria-hidden="true" />
-            {props.activeCity || 'City'}
-            <ChevronDown size={12} className={clsx('transition-transform', moreOpen && 'rotate-180')} aria-hidden="true" />
-          </button>
-          {moreOpen && (
-            <div className="absolute top-full left-0 mt-2 bg-bg-surface border border-border-default rounded-md p-3 shadow-lg z-10 min-w-[200px]">
-              <div className="flex flex-col gap-1 max-h-[220px] overflow-y-auto">
-                <button
-                  onClick={() => { props.onCityChange(null); setMoreOpen(false) }}
-                  className={clsx('text-left text-sm px-2 py-1.5 rounded', !props.activeCity ? 'text-accent' : 'text-text-secondary hover:text-text-primary')}
-                >
-                  All cities
-                </button>
-                {props.cities.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => { props.onCityChange(c); setMoreOpen(false) }}
-                    className={clsx('text-left text-sm px-2 py-1.5 rounded', props.activeCity === c ? 'text-accent' : 'text-text-secondary hover:text-text-primary')}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <Trigger
+          label="Location"
+          value={props.activeCity}
+          isOpen={open === 'city'}
+          onToggle={() => setOpen(open === 'city' ? null : 'city')}
+        >
+          <div className="max-h-[240px] overflow-y-auto">
+            <Option selected={!props.activeCity} onClick={() => { props.onCityChange(null); setOpen(null) }}>All cities</Option>
+            {props.cities.map((c) => (
+              <Option key={c} selected={props.activeCity === c} onClick={() => { props.onCityChange(c); setOpen(null) }}>
+                {c}
+              </Option>
+            ))}
+          </div>
+        </Trigger>
 
-        {hasActive && (
+        <Trigger
+          label="More"
+          value={props.postedFilter ? POSTED_LABELS[props.postedFilter] : null}
+          isOpen={open === 'more'}
+          onToggle={() => setOpen(open === 'more' ? null : 'more')}
+        >
+          <div className="font-mono text-[10px] uppercase tracking-wide text-text-tertiary px-3 pt-2 pb-1">Posted</div>
+          <Option selected={!props.postedFilter} onClick={() => { props.onPostedFilterChange(null); setOpen(null) }}>Any time</Option>
+          {(['today', 'week', 'month'] as const).map((p) => (
+            <Option key={p} selected={props.postedFilter === p} onClick={() => { props.onPostedFilterChange(p); setOpen(null) }}>
+              {POSTED_LABELS[p]}
+            </Option>
+          ))}
+        </Trigger>
+      </div>
+
+      {chips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          {chips.map((chip) => (
+            <button
+              key={chip.label}
+              onClick={chip.onRemove}
+              className="flex items-center gap-1.5 bg-accent-soft border border-accent-border text-accent text-[12.5px] font-medium rounded-full pl-3 pr-2 py-1.5 capitalize"
+            >
+              {chip.label}
+              <X size={12} aria-hidden="true" />
+            </button>
+          ))}
           <button
             onClick={() => {
               props.onFnChange(null)
               props.onSeniorityChange(null)
               props.onWorkModeChange(null)
               props.onCityChange(null)
+              props.onPostedFilterChange(null)
             }}
-            className="flex items-center gap-1 text-[13px] text-text-tertiary hover:text-text-primary ml-1"
+            className="text-[12.5px] text-text-tertiary hover:text-text-primary"
           >
-            <X size={13} aria-hidden="true" />
-            Clear
+            Clear all
           </button>
-        )}
-      </FilterGroup>
+        </div>
+      )}
     </div>
   )
 }
 
-function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
+function Trigger({
+  label,
+  value,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  label: string
+  value: string | null
+  isOpen: boolean
+  onToggle: () => void
+  children: ReactNode
+}) {
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="font-mono text-[10px] uppercase tracking-wide text-text-tertiary w-[70px] flex-shrink-0">{label}</span>
-      {children}
+    <div className="relative">
+      <button
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className={clsx(
+          'flex items-center gap-1.5 px-3.5 py-2 rounded-md text-[13px] font-medium border whitespace-nowrap transition-colors',
+          value || isOpen
+            ? 'border-accent-border text-text-primary bg-bg-surface'
+            : 'border-border-default text-text-secondary bg-bg-surface hover:border-text-tertiary',
+        )}
+      >
+        {value || label}
+        <ChevronDown size={13} className={clsx('transition-transform text-text-tertiary', isOpen && 'rotate-180')} aria-hidden="true" />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-2 bg-bg-surface border border-border-default rounded-md py-1.5 shadow-lg z-20 min-w-[180px]">
+          {children}
+        </div>
+      )}
     </div>
   )
 }
 
-function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: string }) {
+function Option({
+  selected,
+  onClick,
+  capitalize,
+  children,
+}: {
+  selected: boolean
+  onClick: () => void
+  capitalize?: boolean
+  children: ReactNode
+}) {
   return (
     <button
       onClick={onClick}
-      aria-pressed={active}
       className={clsx(
-        'px-3.5 py-2 rounded-full text-[13px] font-medium border whitespace-nowrap capitalize transition-colors',
-        active
-          ? 'bg-accent-soft border-accent-border text-accent'
-          : 'bg-bg-surface border-border-default text-text-secondary hover:border-text-tertiary',
+        'block w-full text-left px-3 py-2 text-sm transition-colors',
+        capitalize && 'capitalize',
+        selected ? 'text-accent font-medium' : 'text-text-secondary hover:text-text-primary',
       )}
     >
       {children}

@@ -3,7 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import Layout from '../components/shell/Layout'
 import Skeleton from '../components/ui/Skeleton'
-import CompanyAvatar from '../components/jobs/CompanyAvatar'
+import CompanyLogo from '../components/jobs/CompanyLogo'
 import JobCard from '../components/jobs/JobCard'
 import { fetchJobs } from '../lib/jobs/fetchJobs'
 import { deriveCompanies, type CompanyAggregate } from '../lib/jobs/companies'
@@ -43,7 +43,7 @@ export default function CompanyProfile() {
         </Link>
 
         <div className="flex items-center gap-4">
-          <CompanyAvatar name={company.name} color={company.color} size={56} />
+          <CompanyLogo name={company.name} color={company.color} size={56} />
           <div>
             <h1 className="font-display text-3xl md:text-4xl">{company.name}</h1>
             <p className="text-text-secondary text-sm mt-1">

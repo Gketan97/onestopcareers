@@ -2,24 +2,26 @@ import { useNavigate, Link } from 'react-router-dom'
 import type { MouseEvent } from 'react'
 import { MapPin, Wifi, Building2 } from 'lucide-react'
 import type { Job } from '../../lib/jobs/types'
-import { postedLabel, recencyTier } from '../../lib/format'
+import { postedLabel } from '../../lib/format'
 import { jobSlug } from '../../lib/jobs/slug'
 import { companySlug } from '../../lib/jobs/companies'
-import CompanyAvatar from './CompanyAvatar'
-import Badge from '../ui/Badge'
-
-const recencyTone = { fresh: 'green', aging: 'amber', stale: 'gray' } as const
-const KNOWN_FUNCTIONS = ['data', 'product', 'bizops', 'engineering', 'finance', 'design']
+import { fnLabel } from '../../lib/jobs/functionLabels'
+import CompanyLogo from './CompanyLogo'
 
 const ModeIcon = ({ mode, size }: { mode: string; size: number }) =>
   mode === 'remote' ? <Wifi size={size} aria-hidden="true" /> : <Building2 size={size} aria-hidden="true" />
 
-// Redesigned 2026-08-23 per the Jobs/Companies architecture brief: company
-// is now the primary visual anchor (avatar + name), not an unexplained
-// colored bar. Hierarchy: company -> title -> location/mode -> function/
-// level -> posted date, matching the brief's card spec exactly. Company
-// name is independently clickable (-> /companies/:slug), same "click
-// state per element" requirement from the brief.
+// v6 (2026-08-23): several explicit reversals from the previous pass —
+// (1) real company logos (CompanyLogo, with monogram fallback) instead
+// of always-initials; (2) the per-company colored top/left border
+// removed — it was decorative, not semantic, and orange usage is now
+// reserved for selected/interactive states only, not card chrome; (3)
+// the raw `fn` badge (which literally showed "data" — ambiguous) now
+// uses fnLabel() for a real word ("Analytics"); (4) posted date
+// de-emphasized — no more color-coded recency dot/tone, just quiet
+// muted text; (5) tightened padding to cut empty vertical space.
+// Hierarchy unchanged: company -> title -> location/mode/function ->
+// posted date, still matches the brief.
 export default function JobCard({
   job,
   query,
@@ -32,18 +34,8 @@ export default function JobCard({
   index?: number
 }) {
   const navigate = useNavigate()
-  const showFnBadge = KNOWN_FUNCTIONS.includes(job.fn)
-  const recency = recencyTier(job.posted_at)
-  const style = { animationDelay: `${Math.min(index, 12) * 35}ms` }
   const color = job.color || '#E86B35'
-
-  const RecencyDot = (
-    <span
-      className={`w-1.5 h-1.5 rounded-full ${
-        recency === 'fresh' ? 'bg-green' : recency === 'aging' ? 'bg-amber' : 'bg-gray'
-      }`}
-    />
-  )
+  const style = { animationDelay: `${Math.min(index, 12) * 35}ms` }
 
   const goToJob = () => navigate(`/jobs/${jobSlug(job)}${query ? `?q=${encodeURIComponent(query)}` : ''}`)
   const stopAndGoToCompany = (e: MouseEvent) => e.stopPropagation()
@@ -55,35 +47,36 @@ export default function JobCard({
         onKeyDown={(e) => e.key === 'Enter' && goToJob()}
         role="button"
         tabIndex={0}
-        style={{ ...style, borderTopColor: color, borderTopWidth: '2px' }}
-        className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md p-4 flex flex-col gap-3 cursor-pointer transition-all hover:border-border-default hover:-translate-y-px hover:shadow-lg h-full"
+        style={style}
+        className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md p-3.5 flex flex-col gap-2.5 cursor-pointer transition-all hover:border-accent-border hover:-translate-y-px hover:shadow-lg h-full"
       >
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <CompanyAvatar name={job.company} color={color} size={28} />
-            <Link
-              to={`/companies/${companySlug(job.company)}`}
-              onClick={stopAndGoToCompany}
-              className="text-[13px] font-medium text-text-primary hover:text-accent truncate"
-            >
-              {job.company}
-            </Link>
-          </div>
-          <span className={`flex items-center gap-1.5 font-mono text-[10.5px] flex-shrink-0 ${recencyTone[recency] === 'green' ? 'text-green' : recencyTone[recency] === 'amber' ? 'text-amber' : 'text-gray'}`}>
-            {RecencyDot}
-            {postedLabel(job.posted_at)}
-          </span>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <CompanyLogo name={job.company} color={color} size={26} />
+          <Link
+            to={`/companies/${companySlug(job.company)}`}
+            onClick={stopAndGoToCompany}
+            className="text-[13px] font-medium text-text-primary hover:text-accent truncate"
+          >
+            {job.company}
+          </Link>
         </div>
         <div className="text-sm font-semibold leading-snug line-clamp-2">{job.title}</div>
-        <div className="flex gap-2 flex-wrap mt-auto pt-1 items-center">
-          {showFnBadge && <Badge tone="neutral" className="!text-[10px] !px-2 !py-0.5">{job.fn}</Badge>}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10.5px] text-text-tertiary items-center">
+          {job.city && (
+            <span className="flex items-center gap-1">
+              <MapPin size={10} aria-hidden="true" />
+              {job.city}
+            </span>
+          )}
           {job.mode && (
-            <span className="flex items-center gap-1 font-mono text-[10px] text-text-tertiary capitalize">
-              <ModeIcon mode={job.mode} size={11} />
+            <span className="flex items-center gap-1 capitalize">
+              <ModeIcon mode={job.mode} size={10} />
               {job.mode}
             </span>
           )}
+          <span>{fnLabel(job.fn)}</span>
         </div>
+        <span className="font-mono text-[10px] text-text-tertiary mt-auto pt-1">{postedLabel(job.posted_at)}</span>
       </div>
     )
   }
@@ -94,23 +87,21 @@ export default function JobCard({
       onKeyDown={(e) => e.key === 'Enter' && goToJob()}
       role="button"
       tabIndex={0}
-      style={{ ...style, borderLeftColor: color, borderLeftWidth: '3px' }}
-      className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md px-6 py-5 flex items-center justify-between gap-6 cursor-pointer transition-all hover:border-border-default hover:-translate-y-px hover:shadow-lg"
+      style={style}
+      className="animate-fade-in-up bg-bg-surface border border-border-subtle rounded-md px-5 py-4 flex items-center justify-between gap-6 cursor-pointer transition-all hover:border-accent-border hover:-translate-y-px hover:shadow-lg"
     >
-      <div className="flex gap-4 items-start flex-1 min-w-0">
-        <CompanyAvatar name={job.company} color={color} size={42} />
+      <div className="flex gap-3.5 items-center flex-1 min-w-0">
+        <CompanyLogo name={job.company} color={color} size={38} />
         <div className="min-w-0">
           <Link
             to={`/companies/${companySlug(job.company)}`}
             onClick={stopAndGoToCompany}
-            className="text-[15px] font-medium text-text-primary hover:text-accent"
+            className="text-[13px] text-text-secondary hover:text-accent"
           >
             {job.company}
           </Link>
-          <div className="flex items-center gap-2.5 flex-wrap mt-1">
-            <span className="text-base font-semibold">{job.title}</span>
-          </div>
-          <div className="flex gap-3.5 mt-2.5 flex-wrap font-mono text-[11.5px] text-text-tertiary items-center">
+          <div className="text-base font-semibold mt-0.5">{job.title}</div>
+          <div className="flex gap-3 mt-1.5 flex-wrap font-mono text-[11.5px] text-text-tertiary items-center">
             {job.city && (
               <span className="flex items-center gap-1">
                 <MapPin size={12} aria-hidden="true" />
@@ -123,18 +114,13 @@ export default function JobCard({
                 {job.mode}
               </span>
             )}
-            {showFnBadge && <Badge tone="neutral" className="!text-[10px]">{job.fn}</Badge>}
+            <span>{fnLabel(job.fn)}</span>
             {job.seniority && <span className="capitalize">{job.seniority}</span>}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col items-end gap-2.5 flex-shrink-0">
-        <Badge tone={recencyTone[recency]} className="!bg-transparent !border-0 !px-0 font-medium flex items-center gap-1.5">
-          {RecencyDot}
-          {postedLabel(job.posted_at)}
-        </Badge>
-      </div>
+      <span className="font-mono text-[11px] text-text-tertiary flex-shrink-0">{postedLabel(job.posted_at)}</span>
     </div>
   )
 }

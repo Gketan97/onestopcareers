@@ -1,18 +1,20 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import { LayoutGrid, List as ListIcon, ArrowDownAZ } from 'lucide-react'
+import { LayoutGrid, List as ListIcon, ArrowDownAZ, ArrowRight } from 'lucide-react'
 import { fetchJobs } from '../../lib/jobs/fetchJobs'
 import type { Job } from '../../lib/jobs/types'
 import { deriveCompanies } from '../../lib/jobs/companies'
-import CompanyAvatar from './CompanyAvatar'
+import { fnLabel } from '../../lib/jobs/functionLabels'
+import CompanyLogo from './CompanyLogo'
 import JobCard from './JobCard'
 import JobSearch from './JobSearch'
-import JobFilters from './JobFilters'
+import JobFilters, { type PostedFilter } from './JobFilters'
 import EmptyState from './EmptyState'
 import Skeleton from '../ui/Skeleton'
 import Button from '../ui/Button'
 
 const PAGE_SIZE = 24
+const DISCOVERY_AFTER = 8 // insert the companies module after this many results
 type ViewMode = 'grid' | 'list'
 type SortMode = 'newest' | 'relevant'
 
@@ -22,14 +24,11 @@ export default function JobList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
-  // Pre-selected to 'data' (Analytics) per request — this is an
-  // analytics-focused platform, defaulting to that scope rather than
-  // "all functions" matches what most visitors actually want to see
-  // first. Still one click away from clearing to see everything.
   const [activeFn, setActiveFn] = useState<string | null>('data')
   const [activeSeniority, setActiveSeniority] = useState<string | null>(null)
   const [workMode, setWorkMode] = useState<string | null>(null)
   const [activeCity, setActiveCity] = useState<string | null>(null)
+  const [postedFilter, setPostedFilter] = useState<PostedFilter>(null)
   const [view, setView] = useState<ViewMode>('grid')
   const [sort, setSort] = useState<SortMode>('newest')
 
@@ -83,15 +82,16 @@ export default function JobList() {
     if (activeSeniority) result = result.filter((j) => j.seniority === activeSeniority)
     if (workMode) result = result.filter((j) => j.mode === workMode)
     if (activeCity) result = result.filter((j) => j.city === activeCity)
+    if (postedFilter) {
+      const days = postedFilter === 'today' ? 1 : postedFilter === 'week' ? 7 : 30
+      const cutoff = new Date()
+      cutoff.setDate(cutoff.getDate() - days)
+      const cutoffStr = cutoff.toISOString().slice(0, 10)
+      result = result.filter((j) => j.posted_at >= cutoffStr)
+    }
     return result
-  }, [jobs, q, activeFn, activeSeniority, workMode, activeCity])
+  }, [jobs, q, activeFn, activeSeniority, workMode, activeCity, postedFilter])
 
-  // "Newest" is genuinely chronological (posted_at desc). "Most relevant"
-  // only means something when there's a search query — exact title
-  // matches first, then title-contains, then company matches, falling
-  // back to recency as a tiebreak. With no query it's identical to
-  // Newest, so the toggle is disabled in that state rather than
-  // pretending there's a ranking signal we don't have.
   const sorted = useMemo(() => {
     const arr = [...filtered]
     if (sort === 'newest' || !q) {
@@ -111,110 +111,124 @@ export default function JobList() {
   const paginated = sorted.slice(0, page * PAGE_SIZE)
   const hasMore = paginated.length < sorted.length
 
-  // Parallel companies feed, replacing the standalone /companies nav
-  // destination — derived from the same already-fetched job list, no
-  // extra fetch. Capped at 8 so it doesn't overwhelm the sidebar; the
-  // full list is still one click away via "See all companies".
-  const topCompanies = useMemo(() => deriveCompanies(jobs).slice(0, 8), [jobs])
+  // Contextual to the CURRENT filtered set, not the global job list —
+  // "companies hiring for X" should mean companies with open X roles,
+  // not companies hiring for anything. Heading text adapts to which
+  // filters are active, matching the brief's exact examples.
+  const discoveryCompanies = useMemo(() => deriveCompanies(filtered).slice(0, 4), [filtered])
+  const discoveryHeading = useMemo(() => {
+    if (activeFn && workMode) return `Companies hiring ${workMode} ${fnLabel(activeFn).toLowerCase()} talent`
+    if (activeFn) return `Companies hiring for ${fnLabel(activeFn)}`
+    if (workMode) return `Companies hiring ${workMode} roles`
+    return 'Companies hiring now'
+  }, [activeFn, workMode])
+
+  const firstChunk = paginated.slice(0, DISCOVERY_AFTER)
+  const restChunk = paginated.slice(DISCOVERY_AFTER)
+  const showDiscovery = !loading && !error && paginated.length > DISCOVERY_AFTER && discoveryCompanies.length > 0
+
+  const gridClass = view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3' : 'flex flex-col gap-3'
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-8 items-start">
-      {/* Main content first in DOM order on purpose — on mobile
-          (grid-cols-1) this means jobs appear before the companies
-          feed, matching what most visitors came here for. */}
-      <div className="min-w-0">
-        <div className="flex gap-3 flex-wrap items-center mb-4">
-          <JobSearch value={q} onChange={setQ} />
-          <JobFilters
-            functions={functions}
-            activeFn={activeFn}
-            onFnChange={(fn) => { setPage(1); setActiveFn(fn) }}
-            seniorities={seniorities}
-            activeSeniority={activeSeniority}
-            onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s) }}
-            workMode={workMode}
-            onWorkModeChange={(m) => { setPage(1); setWorkMode(m) }}
-            cities={cities}
-            activeCity={activeCity}
-            onCityChange={(c) => { setPage(1); setActiveCity(c) }}
-          />
-        </div>
+    <div>
+      <div className="flex gap-3 flex-wrap items-center mb-4">
+        <JobSearch value={q} onChange={setQ} />
+      </div>
 
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
-          {!loading && !error && (
-            <div className="font-mono text-xs text-text-tertiary">
-              {sorted.length.toLocaleString()} role{sorted.length !== 1 ? 's' : ''} match
-            </div>
-          )}
-          <div className="flex items-center gap-2 ml-auto">
-            <SortToggle sort={sort} onChange={setSort} disabled={!q} />
-            <ViewToggle view={view} onChange={setView} />
-          </div>
-        </div>
+      <JobFilters
+        functions={functions}
+        activeFn={activeFn}
+        onFnChange={(fn) => { setPage(1); setActiveFn(fn) }}
+        seniorities={seniorities}
+        activeSeniority={activeSeniority}
+        onSeniorityChange={(s) => { setPage(1); setActiveSeniority(s) }}
+        workMode={workMode}
+        onWorkModeChange={(m) => { setPage(1); setWorkMode(m) }}
+        cities={cities}
+        activeCity={activeCity}
+        onCityChange={(c) => { setPage(1); setActiveCity(c) }}
+        postedFilter={postedFilter}
+        onPostedFilterChange={(p) => { setPage(1); setPostedFilter(p) }}
+      />
 
-        {error && (
-          <p className="text-red text-sm py-8">Couldn’t load jobs right now: {error}</p>
-        )}
-
-        {loading && (
-          <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3' : 'flex flex-col gap-3'}>
-            {[...Array(9)].map((_, i) => (
-              <Skeleton key={i} className={view === 'grid' ? 'h-[132px]' : 'h-[92px]'} />
-            ))}
+      <div className="flex items-center gap-3 my-6 flex-wrap">
+        {!loading && !error && (
+          <div className="font-mono text-xs text-text-tertiary">
+            {sorted.length.toLocaleString()} open role{sorted.length !== 1 ? 's' : ''}
           </div>
         )}
+        <div className="flex items-center gap-2 ml-auto">
+          <SortToggle sort={sort} onChange={setSort} disabled={!q} />
+          <ViewToggle view={view} onChange={setView} />
+        </div>
+      </div>
 
-        {!loading && !error && sorted.length === 0 && <EmptyState query={q} />}
+      {error && (
+        <p className="text-red text-sm py-8">Couldn&#8217;t load jobs right now: {error}</p>
+      )}
 
-        {!loading && !error && sorted.length > 0 && (
-          <div
-            className={
-              view === 'grid'
-                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'
-                : 'flex flex-col gap-3'
-            }
-          >
-            {paginated.map((job, i) => (
+      {loading && (
+        <div className={gridClass}>
+          {[...Array(9)].map((_, i) => (
+            <Skeleton key={i} className={view === 'grid' ? 'h-[110px]' : 'h-[76px]'} />
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && sorted.length === 0 && <EmptyState query={q} />}
+
+      {!loading && !error && sorted.length > 0 && (
+        <>
+          <div className={gridClass}>
+            {firstChunk.map((job, i) => (
               <JobCard key={job.id} job={job} query={q} compact={view === 'grid'} index={i} />
             ))}
           </div>
-        )}
 
-        {hasMore && !loading && (
-          <div className="text-center mt-6">
-            <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
-              Load {Math.min(PAGE_SIZE, sorted.length - paginated.length)} more
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Companies feed — real data, derived, not a separate fetch.
-          Replaces the standalone Companies nav destination. */}
-      {!loading && !error && topCompanies.length > 0 && (
-        <aside className="lg:sticky lg:top-8">
-          <div className="font-mono text-[11px] uppercase tracking-wide text-text-tertiary mb-3">
-            Companies hiring
-          </div>
-          <div className="flex flex-col gap-2">
-            {topCompanies.map((c) => (
-              <Link
-                key={c.slug}
-                to={`/companies/${c.slug}`}
-                className="flex items-center gap-2.5 bg-bg-surface border border-border-subtle rounded-md px-3 py-2.5 transition-colors hover:border-border-default"
-              >
-                <CompanyAvatar name={c.name} color={c.color} size={28} />
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-text-primary truncate">{c.name}</div>
-                  <div className="font-mono text-[10px] text-text-tertiary">{c.totalRoles} role{c.totalRoles !== 1 ? 's' : ''}</div>
-                </div>
+          {showDiscovery && (
+            <div className="my-8 bg-bg-surface border border-border-subtle rounded-lg p-5 md:p-6">
+              <div className="flex items-baseline justify-between mb-1">
+                <h3 className="font-display text-xl">{discoveryHeading}</h3>
+              </div>
+              <p className="text-text-tertiary text-[13px] mb-5">Companies with the most relevant open roles.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {discoveryCompanies.map((c) => (
+                  <Link
+                    key={c.slug}
+                    to={`/companies/${c.slug}`}
+                    className="flex items-center gap-2.5 bg-bg-elevated rounded-md px-3 py-2.5 transition-colors hover:bg-bg-sunken"
+                  >
+                    <CompanyLogo name={c.name} color={c.color} size={30} />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px] font-medium text-text-primary truncate">{c.name}</div>
+                      <div className="font-mono text-[10.5px] text-text-tertiary">{c.totalRoles} role{c.totalRoles !== 1 ? 's' : ''}</div>
+                    </div>
+                    <ArrowRight size={13} className="text-text-tertiary flex-shrink-0" aria-hidden="true" />
+                  </Link>
+                ))}
+              </div>
+              <Link to="/companies" className="inline-block text-[13px] text-accent hover:underline mt-5">
+                Explore all companies →
               </Link>
-            ))}
-          </div>
-          <Link to="/companies" className="block text-center text-[13px] text-accent hover:underline mt-3">
-            See all companies →
-          </Link>
-        </aside>
+            </div>
+          )}
+
+          {restChunk.length > 0 && (
+            <div className={gridClass}>
+              {restChunk.map((job, i) => (
+                <JobCard key={job.id} job={job} query={q} compact={view === 'grid'} index={i} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {hasMore && !loading && (
+        <div className="text-center mt-6">
+          <Button variant="secondary" onClick={() => setPage((p) => p + 1)}>
+            Load {Math.min(PAGE_SIZE, sorted.length - paginated.length)} more
+          </Button>
+        </div>
       )}
     </div>
   )
