@@ -167,6 +167,14 @@ The user proposed a structure inspired by a second competitor reference (a long-
 
 **Hero motion enhancement:** pain-point lines gained per-line icons (`Search`, `BookOpen`, `Youtube`, `Compass` — each matched to its specific question) and a new `blur-in` keyframe (opacity + `translateY` + `filter: blur()`, not just the existing plain `fade-in-up`) for the H1/sub/CTA — a visibly richer reveal than before, still fully passive, per the explicit "animated only, no user interaction" decision.
 
+### SPA catch-all redirect — a real, significant gap, found by accident (2026-08-24)
+
+Discovered because refreshing `/privacy` returned a 404. Checked `netlify.toml` and the `public/` folder: **no SPA fallback redirect existed anywhere in this repo, at any point.** This is not specific to `/privacy` — every route on the site except the bare `/` has been unreachable via direct URL (refresh, bookmark, a shared link, or a search engine crawler fetching the URL directly) since the site first launched, because Netlify serves a static file per path and there was never a rule telling it to fall back to `index.html` so React Router could take over client-side.
+
+**A real, probably significant consequence:** the `JobPostingSchema` structured-data work from the Jobs roadmap milestone, and the per-page meta description swapping, both assumed Google could actually fetch a job detail page's URL directly — that assumption was never true. Google's crawler doesn't click through a site the way a person does; it requests the URL directly, which would have 404'd this entire time. That earlier milestone's SEO work has likely never functioned as intended, discovered only now, by accident, months after it shipped.
+
+**Fixed** with a `[[redirects]]` block in `netlify.toml` (`from = "/*"`, `to = "/index.html"`, `status = 200`) — validated as syntactically correct TOML before shipping, but **not verified against a live Netlify deploy** that this doesn't interfere with the existing `/.netlify/functions/job-description` route (Netlify's own documented behavior is that Functions routing takes precedence over redirects, which this relies on but couldn't be tested directly from this sandbox). Worth explicitly re-checking both things after this deploys: that direct navigation to a job/company page now works, and that the on-demand job-description function still responds correctly.
+
 ### Privacy Policy and Terms of Service pages (2026-08-24)
 
 Needed for real, not speculative — Google's OAuth branding submission requires both a live homepage URL and a privacy policy link before brand verification can proceed. `/privacy` and `/terms` built and linked in the footer.

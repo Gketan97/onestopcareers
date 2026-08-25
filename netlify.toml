@@ -11,3 +11,22 @@
 
 [functions]
   node_bundler = "esbuild"
+
+# This was missing entirely until 2026-08-24 — a real, significant gap,
+# not just relevant to /privacy and /terms. Without this, Netlify serves
+# a plain 404 for any direct request to a path other than "/" (a
+# refresh, a bookmark, a shared link, or Google's crawler fetching a job
+# page directly) — the client-side router (React Router) only ever runs
+# after index.html has already loaded, so it can't help with the very
+# first request for a path. This means every route on the site —
+# /jobs/:slug, /companies/:slug, /career-circle, /login, /saved,
+# /privacy, /terms, all of it — has been unreachable via direct URL
+# since launch, discovered only because refreshing /privacy surfaced it.
+# Also means the JobPostingSchema/meta-tag SEO work from the Jobs
+# roadmap milestone has likely never actually worked for Google's
+# crawler, which fetches URLs directly rather than clicking through the
+# site — worth a real re-check in Search Console once this is live.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
