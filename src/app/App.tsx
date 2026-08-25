@@ -8,6 +8,8 @@ import CareerCircle from '../pages/CareerCircle'
 import CareerCircleJoin from '../pages/CareerCircleJoin'
 import Login from '../pages/Login'
 import Saved from '../pages/Saved'
+import Privacy from '../pages/Privacy'
+import Terms from '../pages/Terms'
 // import AdminJobs from '../pages/AdminJobs'   // Phase 4
 
 export default function App() {
@@ -22,6 +24,8 @@ export default function App() {
         <Route path="/career-circle" element={<CareerCircle />} />
         <Route path="/career-circle/join" element={<CareerCircleJoin />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="/saved" element={<Saved />} />
 
         {/* Reserved — see docs/DESIGN_DOC.md §4 for the full route map.

@@ -39,6 +39,11 @@ export default function Footer() {
           <span className="text-sm text-text-tertiary opacity-50 cursor-default" title="Coming soon">About</span>
           <a href="mailto:hello@onestopcareers.com" className="text-sm text-text-secondary hover:text-text-primary transition-colors">Contact</a>
         </div>
+
+        <div className="flex flex-wrap gap-x-6 gap-y-2 pt-6 mt-6 border-t border-border-subtle">
+          <Link to="/privacy" className="text-[13px] text-text-tertiary hover:text-text-secondary transition-colors">Privacy Policy</Link>
+          <Link to="/terms" className="text-[13px] text-text-tertiary hover:text-text-secondary transition-colors">Terms of Service</Link>
+        </div>
       </div>
     </footer>
   )

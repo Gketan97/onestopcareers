@@ -167,6 +167,14 @@ The user proposed a structure inspired by a second competitor reference (a long-
 
 **Hero motion enhancement:** pain-point lines gained per-line icons (`Search`, `BookOpen`, `Youtube`, `Compass` — each matched to its specific question) and a new `blur-in` keyframe (opacity + `translateY` + `filter: blur()`, not just the existing plain `fade-in-up`) for the H1/sub/CTA — a visibly richer reveal than before, still fully passive, per the explicit "animated only, no user interaction" decision.
 
+### Privacy Policy and Terms of Service pages (2026-08-24)
+
+Needed for real, not speculative — Google's OAuth branding submission requires both a live homepage URL and a privacy policy link before brand verification can proceed. `/privacy` and `/terms` built and linked in the footer.
+
+**Written to accurately describe what this specific system actually does, not generic template boilerplate.** The privacy policy names the real tables (`profiles`, `saved_jobs`, `career_circle_interests`), the real third parties (Supabase, Google, PostHog, Netlify, WhatsApp for accepted Career Circle members), and explicitly states the PII discipline already built into `analytics.ts` — that job/company/circle identifiers go to PostHog but names/emails/phone numbers don't, by construction in the tracking code, not just as a stated policy. Also states plainly that account deletion is a manual email request right now, not a self-service button — accurate to what's actually built, not what would look better on paper.
+
+**Explicitly not lawyer-reviewed, stated as such directly in both files' code comments and worth repeating here:** DPDP Act (India's data protection law) compliance was flagged as an open item all the way back near the start of this project (`docs/DESIGN_DOC.md` open questions, "needs owner + timeline") and was never formally reviewed. These pages are an accurate *functional* draft of what the system does — real legal review is still recommended before treating them as a compliance guarantee, particularly given the DPDP Act angle specifically.
+
 ### Brand mark finalized — hub-and-satellites (2026-08-24)
 
 The site's favicon had been a plain italic "o" monogram since the very first favicon fix (Milestone 25) — functional, but flagged directly by the user as generic ("isn't 'o' a common logo, can't you align a better professional logo"). What followed was a real design process, not a single pass: two follow-up concepts (a numeral-1-plus-checkmark combination, and four ascending bars representing the pillars) were built, rendered, and **honestly rejected after actually looking at them** — the "1 + check" mark didn't read as intended (looked like a trophy/stick figure), and the ascending-bars mark turned out to be visually identical to the universal cell-signal-strength icon. Both failures were stated plainly rather than shipped anyway.
