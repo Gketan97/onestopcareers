@@ -82,3 +82,16 @@ jobs:
             git commit -m "chore: crawl ${{ steps.mode.outputs.label }} — ${JOBS} jobs [skip ci]"
             git push
           fi
+      - name: Purge jsDelivr cache
+        # Added 2026-08-26, after discovering the manual-jobs bug fix had
+        # committed and pushed correctly but stayed invisible on the live
+        # site for a while — jsDelivr's branch-based (@main) caching
+        # doesn't always pick up a fresh commit immediately, and someone
+        # was manually visiting purge.jsdelivr.net every time to force
+        # it. This step does the same purge automatically, every run,
+        # right after a successful push — a fresh commit is now reflected
+        # on the live site within moments, not "eventually, or whenever
+        # someone remembers to purge it by hand."
+        run: |
+          curl -s "https://purge.jsdelivr.net/gh/${{ github.repository }}@main/crawler/data/jobs.json" || true
+          curl -s "https://purge.jsdelivr.net/gh/${{ github.repository }}@main/crawler/data/meta.json" || true

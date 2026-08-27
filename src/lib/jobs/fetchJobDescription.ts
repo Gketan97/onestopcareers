@@ -1,8 +1,14 @@
 import type { Job } from './types'
 
+export interface DescriptionSection {
+  heading: string | null
+  paragraph: string | null
+  items: string[]
+}
+
 export interface JobDescriptionResult {
   available: boolean
-  description?: string
+  sections?: DescriptionSection[]
   reason?: string
 }
 

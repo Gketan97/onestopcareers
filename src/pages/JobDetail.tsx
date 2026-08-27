@@ -10,6 +10,7 @@ import Skeleton from '../components/ui/Skeleton'
 import JobCard from '../components/jobs/JobCard'
 import JobPostingSchema from '../components/jobs/JobPostingSchema'
 import SaveButton from '../components/jobs/SaveButton'
+import DescriptionSections from '../components/jobs/DescriptionSections'
 import { fetchJobs } from '../lib/jobs/fetchJobs'
 import { fetchJobDescription, type JobDescriptionResult } from '../lib/jobs/fetchJobDescription'
 import { jobSlug, idFromSlug } from '../lib/jobs/slug'
@@ -171,8 +172,8 @@ export default function JobDetail() {
                     <Skeleton className="h-4 w-3/4" />
                   </div>
                 )}
-                {desc !== null && desc.available && (
-                  <p className="text-text-secondary leading-relaxed whitespace-pre-line break-words">{desc.description}</p>
+                {desc !== null && desc.available && desc.sections && (
+                  <DescriptionSections sections={desc.sections} />
                 )}
                 {desc !== null && !desc.available && (
                   <p className="text-text-secondary leading-relaxed">
