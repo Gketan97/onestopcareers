@@ -167,6 +167,16 @@ The user proposed a structure inspired by a second competitor reference (a long-
 
 **Hero motion enhancement:** pain-point lines gained per-line icons (`Search`, `BookOpen`, `Youtube`, `Compass` — each matched to its specific question) and a new `blur-in` keyframe (opacity + `translateY` + `filter: blur()`, not just the existing plain `fade-in-up`) for the H1/sub/CTA — a visibly richer reveal than before, still fully passive, per the explicit "animated only, no user interaction" decision.
 
+### Google Sheet manual jobs bug — a real RCA, found in the actual code (2026-08-26)
+
+A user report ("manual jobs from the sheet aren't showing up") turned into a real root-cause investigation, not a guess-and-check cycle. Ruled out, in order, with real evidence at each step: the `GSHEET_CSV_URL` secret existing in the new repo (confirmed present), the crawler's fetch to the sheet failing (it wasn't — the log showed a clean fetch, "0 rows in sheet," no HTTP error, distinct from genuine failures elsewhere in the same log like the Mastercard `ENOTFOUND` error), the sheet being genuinely empty (it wasn't — a real row existed and was confirmed present in the published CSV even when opened directly in a browser, bypassing the crawler entirely).
+
+**The actual bug, found by reading `crawler.js` directly:** `parseCSV()`'s own final filter was `row => row.id && row.title && row.company` — requiring a non-empty `id`. But a blank `id` is the documented, intended way to add a manual job (see the original Google Sheet setup notes) — `fetchGoogleSheet()` has its own fallback specifically for this (`id: row.id || `manual-${hashStr(...)}``), but that fallback was unreachable dead code, since `parseCSV()` discarded blank-id rows before they ever got there. This directly explains the exact symptom: a real row, visibly present in the raw CSV, silently vanishing before the row-count log line even ran.
+
+**Fixed and actually verified working, not just syntax-checked:** the filter now reads `row => row.title && row.company`. Extracted the real `parseCSV()` function from the file and ran it against a reconstructed CSV matching the exact reported row (blank id, "Analytics Manager," "Goel brothers") — returned 0 rows before the fix (matching the real bug report), 1 row after. This is genuine behavioral proof, not an assumption that a one-line filter change was obviously correct.
+
+**Also confirmed as a real, separate data-quality issue on the same row (not related to the code bug, needs manual fixing in the sheet itself, not by us):** the row's `url` field pointed at a Netlify deploy-preview link back at onestopcareers' own site, containing one of the site's own crawler-generated job slugs — almost certainly copy-pasted by mistake rather than the real external application link. The `id`-blank issue was the code bug; the invalid `url` is a data problem the user needs to fix directly in the sheet.
+
 ### Crawler cutover finally completed, plus a fetch timeout (2026-08-26)
 
 The engineering audit's OSC-002 finding (frontend still reading from the old, pre-merge `jobscout-date` repo, months after the merge milestone's own cutover checklist was written) is now actually fixed — `fetchJobs.ts`'s `CDN` constant points at `https://cdn.jsdelivr.net/gh/Gketan97/onestopcareers@main/crawler/data/jobs.json`.

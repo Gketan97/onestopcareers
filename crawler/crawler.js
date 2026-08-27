@@ -849,7 +849,17 @@ function parseCSV(text) {
     const row = {};
     headers.forEach((h, i) => { row[h] = (values[i] || '').replace(/^"|"$/g, '').trim(); });
     return row;
-  }).filter(row => row.id && row.title && row.company);
+  }).filter(row => row.title && row.company);
+  // Fixed 2026-08-26 — this filter previously also required row.id to be
+  // truthy, which silently discarded every row with a blank id before it
+  // could ever reach fetchGoogleSheet's own fallback logic further down
+  // (`id: row.id || manual-${hashStr(...)}`), which exists specifically
+  // to handle blank ids. Found via a real RCA: a manually added row with
+  // a blank id (correct — blank id is the documented, intended way to
+  // add a manual job) was confirmed present in the published CSV when
+  // opened directly in a browser, yet the crawler logged "0 rows in
+  // sheet" — meaning this filter, not a stale publish link or a
+  // User-Agent issue, was the actual cause.
 }
 
 async function fetchGoogleSheet() {
