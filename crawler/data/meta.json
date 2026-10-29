@@ -1,23 +1,23 @@
 {
   "v": 9,
   "count": 442,
-  "updated_at": "2026-10-28T23:06:53.903Z",
+  "updated_at": "2026-10-29T23:14:57.784Z",
   "sources": {
-    "greenhouse": 386,
-    "lever": 55,
+    "greenhouse": 387,
+    "lever": 54,
     "manual": 1
   },
   "cities": {
-    "Bengaluru": 263,
+    "Bengaluru": 264,
     "Chennai": 1,
-    "India": 42,
-    "Mumbai": 17,
+    "India": 40,
+    "Mumbai": 16,
     "Delhi NCR": 88,
     "Remote": 24,
-    "Hyderabad": 5,
-    "Pune": 1,
-    "Ahmedabad": 1
+    "Hyderabad": 6,
+    "Ahmedabad": 2,
+    "Pune": 1
   },
-  "elapsed_s": 133.3,
+  "elapsed_s": 148.9,
   "mode": "INCREMENTAL"
 }
