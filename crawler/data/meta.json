@@ -1,14 +1,14 @@
 {
   "v": 9,
-  "count": 447,
-  "updated_at": "2026-10-31T22:26:02.436Z",
+  "count": 446,
+  "updated_at": "2026-11-01T22:43:47.932Z",
   "sources": {
     "greenhouse": 392,
-    "lever": 54,
+    "lever": 53,
     "manual": 1
   },
   "cities": {
-    "Bengaluru": 270,
+    "Bengaluru": 269,
     "Chennai": 1,
     "Mumbai": 15,
     "India": 39,
@@ -18,6 +18,6 @@
     "Ahmedabad": 2,
     "Pune": 1
   },
-  "elapsed_s": 141.1,
+  "elapsed_s": 137.2,
   "mode": "INCREMENTAL"
 }
