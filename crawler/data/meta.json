@@ -1,20 +1,20 @@
 {
   "v": 9,
   "count": 450,
-  "updated_at": "2026-11-24T04:17:14.131Z",
+  "updated_at": "2026-11-25T02:59:04.381Z",
   "sources": {
+    "manual": 1,
     "greenhouse": 410,
-    "lever": 39,
-    "manual": 1
+    "lever": 39
   },
   "cities": {
-    "Bengaluru": 303,
     "India": 26,
+    "Bengaluru": 303,
     "Mumbai": 16,
     "Delhi NCR": 72,
     "Remote": 29,
     "Hyderabad": 4
   },
-  "elapsed_s": 148.4,
+  "elapsed_s": 0.8,
   "mode": "INCREMENTAL"
 }
